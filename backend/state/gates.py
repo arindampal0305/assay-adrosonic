@@ -64,6 +64,17 @@ def _mapping_resolves_something(state: SOVState) -> bool:
     return any(m.get("target") for m in mappings)
 
 
+def _quality_present(state: SOVState) -> bool:
+    """Agent 3 is real as of milestone 3.
+
+    Agent 4 exists to apply approved recommendations, so reaching it with no
+    quality assessment means it would transform the file against an empty list of
+    findings and report a clean result it never checked for. The same reasoning
+    that made `_mapping_present` a precondition once Agent 2 was real.
+    """
+    return bool(state.quality) and "intake_quality_score" in state.quality
+
+
 PRECONDITIONS: dict[str, tuple[Precondition, ...]] = {
     "sheet_intelligence": (
         (lambda s: bool(s.source.file_path), "source.file_path is required to read the workbook"),
@@ -90,6 +101,7 @@ PRECONDITIONS: dict[str, tuple[Precondition, ...]] = {
             _mapping_resolves_something,
             "mapping resolved no columns to target fields; there is nothing to transform",
         ),
+        (_quality_present, "quality is empty; Agent 3 produced no data-quality assessment"),
     ),
 }
 

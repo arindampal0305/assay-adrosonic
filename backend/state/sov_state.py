@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
-STATE_VERSION = 7
+STATE_VERSION = 8
 
 SheetClass = Literal["Primary", "Secondary", "Reject"]
 Severity = Literal["Low", "Medium", "High"]
@@ -79,6 +79,10 @@ class SOVState(BaseModel):
     source: SourceInfo
     manifest: list[SheetManifestEntry] = Field(default_factory=list)
     mapping: dict[str, Any] = Field(default_factory=dict)
+    # Agent 3's report (`QualityBlock`). Replaced rather than appended, like
+    # `mapping`: there is one data-quality assessment of a file, and a re-run
+    # supersedes the previous one instead of accumulating beside it.
+    quality: dict[str, Any] = Field(default_factory=dict)
     issues: Annotated[list[Issue], operator.add] = Field(default_factory=list)
     recommendations: list[dict[str, Any]] = Field(default_factory=list)
     decisions: list[Decision] = Field(default_factory=list)

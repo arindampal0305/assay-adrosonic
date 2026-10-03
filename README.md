@@ -144,7 +144,17 @@ cp .env.example .env     # Windows: copy .env.example .env
 
 `.env` is gitignored — never commit it.
 
-`OPENAI_API_KEY` is **optional**. Without it, mapping runs fully deterministically on its three local channels; ambiguous columns are simply flagged for review instead of being referred to a model, and the agent logs that it had no adjudicator available. With it, low-margin columns get a second opinion that still has to survive the evidence verifier. Nothing else in the pipeline calls out to the network.
+Adjudication is **optional**, and there are two ways to supply it:
+
+| Config | Result |
+| --- | --- |
+| `OPENAI_API_KEY=sk-…` | OpenAI, model from `ASSAY_LLM_MODEL` |
+| `ASSAY_LLM_PROVIDER=ollama` with the key empty | Local Ollama at `OLLAMA_BASE_URL`, model from `ASSAY_OLLAMA_MODEL` |
+| neither | No adjudication |
+
+A non-empty `OPENAI_API_KEY` always wins, so leave it blank to use Ollama; asking for Ollama with a key set logs a warning and bills OpenAI. Ollama is probed once at startup — if the daemon is down or the model is not pulled, the run falls back to no adjudication rather than failing per column. Local inference is slow enough to need `ASSAY_LLM_TIMEOUT` raised well above its 20 s default; llama3.1 on CPU took ~6–7 s per column once warm.
+
+With no provider, mapping runs fully deterministically on its three local channels, ambiguous columns are flagged for review rather than referred to a model, and the run reports an `adjudicator_unavailable` issue plus an audit record naming the columns that went unadjudicated. Nothing else in the pipeline calls out to the network.
 
 ### 5. First run downloads the embedding model
 
@@ -214,6 +224,8 @@ Response:
     "review_required_count": 0,
     "unmapped_targets": ["County", "Country", "Other"],
     "semantic_channel_available": true,
+    "low_margin_count": 2,
+    "adjudicator_available": false,
     "adjudicator_consulted": 0,
     "adjudicator_accepted": 0,
     "adjudicator_rejected": 0,
@@ -247,7 +259,7 @@ Response:
 
 `header_row` is **0-based**, so `pd.read_excel(path, header=header_row)` works directly. The `reasons` strings quote the 1-based Excel row a human would see.
 
-`audit` holds one record per LLM consultation, including every proposal that was **rejected** and the specific checks it failed. It is empty above because no `OPENAI_API_KEY` was configured and no column was ambiguous enough to need one.
+`audit` holds one record per LLM consultation, including every proposal that was **rejected** and the specific checks it failed. It is empty above because no provider was configured — note `adjudicator_available: false` beside `low_margin_count: 2`. Those two columns *were* eligible: they scored within 0.15 of their runner-up and would have been referred to a model had one been available. When no provider is configured the run says so, via an `adjudicator_unavailable` issue and an `adjudication_skipped` audit record naming the columns. `low_margin_count` is reported separately from `adjudicator_consulted` precisely so "nothing needed adjudicating" and "something did and no model was available" cannot be confused.
 
 Bad input returns `422` with a message an analyst can act on:
 
@@ -330,7 +342,16 @@ Every cleaned SOV is normalised to these 17 columns (SRS 5.1):
 | 3 | Agent 3 data quality rules and recommendations | planned |
 | 4 | Agent 4 transformation, audit log, review UI | planned |
 
-Current mapping accuracy across the four sample files: **58 of 58 columns on the correct target**, no column falling into `human_review_required`. Those are hand-built practice files, not real client SOVs — evidence the channels work, not a benchmark.
+Current mapping, measured on two corpora that should never be quoted as one number:
+
+| Corpus | Columns | Given a target | Unresolved | `human_review_required` | Overall confidence |
+| --- | --- | --- | --- | --- | --- |
+| 4 hand-built practice files | 58 | 58 | 0 | 0 | 0.843 – 0.860 |
+| 4 real client SOVs | 100 | 52 | 48 | 56 | 0.623 – 0.807 |
+
+The practice-file figure is **58 of 58 on the correct target** — but those files were built in-house to reproduce the documented mess, so it is evidence the channels work, not a benchmark.
+
+For the four real SOVs the honest figure is **coverage, not accuracy: 52 of 100 columns received a target and 48 were left unresolved.** No accuracy percentage is published because the real files have no ground-truth labelling, and spot-checking found at least one confidently wrong mapping (`Buildings → Number of Buildings` on a column of 26 currency values, at confidence 0.402 and correctly flagged `human_review_required`). Roughly half the real columns are things the frozen 17-field schema has no slot for — flood-zone determinations, inspection dates, roof and HVAC update years, Marshall-Swift valuation summaries — so a high unresolved count is partly the schema being honest about its own boundaries rather than pure failure.
 
 Per-milestone write-ups, each with real executed output and the defects that running real files exposed:
 

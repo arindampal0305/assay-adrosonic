@@ -15,3 +15,11 @@ scipy>=1.14
 sentence-transformers>=3.0
 openai>=1.50
 pytest>=8.0
+
+# Milestone 3 — Agent 3 data quality
+# Declarative type and range validation over the typed frame (FR-DQ-02). Bounded
+# to the 0.33 line deliberately: the import path is `pandera.pandas` rather than
+# the top-level `pandera` of earlier releases, and `Check(error=...)` — not
+# `name=` — is what carries a rule id through to `failure_cases`. Both were
+# established by running it, and both would change silently across a major bump.
+pandera>=0.33,<0.34

@@ -70,6 +70,13 @@ async def create_run(file: UploadFile = File(...)):
         "source": state.source.model_dump(exclude={"file_path"}),
         "manifest": [entry.model_dump(by_alias=True) for entry in state.manifest],
         "mapping": state.mapping,
+        # Agent 3's assessment and its proposals. `recommendations` is the list a
+        # reviewer acts on; `quality` is the evidence behind the score shown beside
+        # it. Both are returned in full rather than summarised, because the entire
+        # point of `score_components` and `rules_not_applicable` is to be
+        # inspectable by whoever distrusts the number.
+        "quality": state.quality,
+        "recommendations": state.recommendations,
         "issues": [issue.model_dump() for issue in state.issues],
         # Exposed so a reviewer can see every LLM proposal that was discarded, not
         # just the mappings that survived.
