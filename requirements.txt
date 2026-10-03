@@ -1,0 +1,7 @@
+langgraph>=0.2.60
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.12
+pandas>=2.2.0
+openpyxl>=3.1.0
+pydantic>=2.9.0

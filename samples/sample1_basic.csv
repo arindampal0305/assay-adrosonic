@@ -1,0 +1,13 @@
+Loc #,Street Address,City,St,Zip,Bldg Repl Cost,Contents,BI/EE,Occ,Const,Stories,# Bldgs,Yr Blt,Sprk
+LOC-001,1420 Industrial Pkwy,Austin,TX,78701,1250000,480000,95000,Warehouse,Masonry,1,1,1998,Y
+LOC-002,88 Harbor St,Boston,MA,2110,3400000,1200000,260000,Office,Fire Resistive,8,1,1972,Y13
+LOC-003,9900 Rio Grande Blvd,Albuquerque,NM,87114,640000,155000,0,Retail,Frame,1,2,2005,N
+LOC-004,17 Mill Race Rd,Greenville,SC,29601,"$2,100,000.00","$775,000.00",180000,Manufacturing,Joisted Masonry,2,3,1965,Y
+LOC-005,455 Lakeview Dr,Madison,WI,53703,890000,210000,45000,Office,Masonry,3,1,0,N
+LOC-006,2 Cannery Row,Monterey,CA,93940,1575000,640000,130000,Restaurant,Frame,1,1,1988,Y(13R)
+LOC-007,6100 Peachtree Ind,Atlanta,GA,30341,-45000,98000,12000,Storage,Metal,1,1,2012,N
+LOC-008,311 N Clark,Chicago,IL,60654,7800000,2450000,610000,Office,Fire Resistive,24,1,1955,Y
+LOC-009,742 Evergreen Ter,Springfield,OR,97477,320000,86000,0,Dwelling,Frame,2,1,1931,N
+LOC-010,1 Riverside Plz,Columbus,OH,43215,4100000,1340000,320000,Office,Masonry,12,1,1979,Y
+LOC-011,500 W Monroe,Phoenix,AZ,85003,1980000,505000,110000,Mixed Use,Masonry,4,2,2019,Y13
+LOC-012,27 Dock Rd,Portland,ME,4101,730000,190000,38000,Marina,Frame,1,4,2031,Partial
