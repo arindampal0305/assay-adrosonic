@@ -168,6 +168,8 @@ async def get_run_data_preview(run_id: str):
     state = None
     if state_snapshot and state_snapshot.values:
         val = state_snapshot.values
+        if isinstance(val, dict) and "audit" in val and val["audit"]:
+            val["audit"] = [a.model_dump() if hasattr(a, "model_dump") else a for a in val["audit"]]
         state = val if isinstance(val, SOVState) else SOVState.model_validate(val)
     elif run_id in RUN_STATES:
         state = RUN_STATES[run_id]
@@ -191,7 +193,11 @@ async def get_run_data_preview(run_id: str):
 
         df = df.fillna("")
         headers = [str(c) for c in df.columns]
-        sample_rows = df.head(100).to_dict(orient="records")
+        raw_rows = df.head(100).to_dict(orient="records")
+        sample_rows = [
+            {str(k): (str(v) if v is not None else "") for k, v in row.items()}
+            for row in raw_rows
+        ]
         total_rows = len(df)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to parse preview data: {exc}")
