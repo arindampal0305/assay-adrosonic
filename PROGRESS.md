@@ -9,7 +9,7 @@
 | M3 | Agent 3: quality rules (DQ-01 to DQ-18), recommendations, rationale verifier | ✅ Completed | 2026-10-04 |
 | M4a | LangGraph interrupt gate, SQLite checkpointer, REST API & decision endpoints, SSE | ✅ Completed | 2026-10-04 |
 | M4b | Agent 4: Controlled transformation, audit log, output schema verification, ChromaDB memory | ✅ Completed | 2026-10-04 |
-| M5 | Review UI integration, mutation harness, performance, Docker, demo script | ⏳ In Progress | |
+| M5 | Review UI integration, mutation harness, performance, Docker, demo script | ✅ Completed | 2026-10-04 |
 
 ---
 
@@ -29,4 +29,9 @@
 - Pandera schema self-check verification post-export.
 - Local persistent ChromaDB vector memory for positive/negative decision feedback.
 - Interactive HTML/JS review UI with side-by-side before/after preview, intake quality card, and downloads.
-- 187/187 unit tests passing cleanly.
+
+### M5: Packaging, Evaluation Harness & Final Integration (Completed & Verified)
+- Containerized deployment with `Dockerfile` and `docker-compose.yml`.
+- End-to-end evaluation harness (`scripts/run_mutation_harness.py`) evaluating Mapping Accuracy (≥ 85%), Quality Recall (≥ 95%), and Transformation Correctness (100%).
+- Practice SOV generation script (`scripts/make_samples.py`) and multi-file runner (`scripts/run_samples.py`).
+- Updated project documentation and judge-ready setup instructions in `README.md`.

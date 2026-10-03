@@ -36,16 +36,16 @@ Four specialised agents run in sequence over one shared, typed state object.
    │    Sheet    │ →  │   Schema    │ →  │    Data     │ →  │ Controlled  │
    │Intelligence │    │   Mapping   │    │   Quality   │    │Transformation│
    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-       REAL              REAL               stub               stub
+        REAL              REAL               REAL               REAL
 ```
 
 **Agent 1 — Sheet Intelligence.** Opens the workbook, scores every sheet, finds the header row wherever it hides, rebuilds merged banner headers, and decides which sheet actually holds the location schedule.
 
 **Agent 2 — Schema Mapping.** Maps the source columns onto the 17 target fields using three independent evidence channels — a 321-phrase insurance glossary matched with RapidFuzz, local `bge-small` embeddings, and a profile of what is actually in the column — fused and then assigned globally with the Hungarian algorithm. Genuinely ambiguous columns are referred to an LLM whose every citation is re-checked against the evidence before it may change anything.
 
-**Agent 3 — Data Quality.** Applies validation rules row by row — ZIP length, impossible years, negative values, state codes, placeholder detection — and raises typed issues with recommendations.
+**Agent 3 — Data Quality & Reasoning.** Applies validation rules row by row — ZIP length, impossible years, negative values, state codes, currency formatting, placeholder detection, duplicates, and total rows — and raises typed issues with human-understandable recommendations and engine-verified worked examples.
 
-**Agent 4 — Controlled Transformation.** Applies only the approved recommendations to a *copy* of the source and writes the cleaned workbook plus an audit log.
+**Agent 4 — Controlled Transformation.** Applies only approved recommendations to a *copy* of the source (zero LLM calls) and writes the cleaned 17-field workbook (`Cleaned_SOV.xlsx`) plus a cell-level audit log (`Audit_Log.xlsx`), verified by Pandera self-checks.
 
 ### Contract gates
 
@@ -337,10 +337,11 @@ Every cleaned SOV is normalised to these 17 columns (SRS 5.1):
 
 | Milestone | Scope | Status |
 |---|---|---|
-| **1** | Skeleton, `SOVState`, contract gates, Agent 1, API | ✅ complete |
-| **2** | Agent 2 schema mapping, insurance glossary, LLM adjudicator + verifier | ✅ complete |
-| 3 | Agent 3 data quality rules and recommendations | planned |
-| 4 | Agent 4 transformation, audit log, review UI | planned |
+| **1** | Skeleton, `SOVState`, contract gates, Agent 1, API | ✅ Complete |
+| **2** | Agent 2 schema mapping, insurance glossary, LLM adjudicator + verifier | ✅ Complete |
+| **3** | Agent 3 data quality rules (DQ-01..18), recommendations, rationale verifier | ✅ Complete |
+| **4** | Human review gate, Agent 4 transformation, ChromaDB vector memory | ✅ Complete |
+| **5** | Underwriter UI, mutation harness, Docker container, demo-ready pipeline | ✅ Complete |
 
 Current mapping, measured on two corpora that should never be quoted as one number:
 
