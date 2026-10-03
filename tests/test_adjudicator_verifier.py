@@ -14,10 +14,13 @@ that broke, rather than "something was rejected".
 from __future__ import annotations
 
 import json
+from typing import get_args
 
 import pytest
 
 from backend.agents.mapping.adjudicator import (
+    SYSTEM_PROMPT,
+    VALUE_SHAPES,
     AdjudicationOutcome,
     Proposal,
     adjudicate,
@@ -25,6 +28,7 @@ from backend.agents.mapping.adjudicator import (
     verify_proposal,
 )
 from backend.agents.mapping.solver import Assignment, Cell
+from backend.agents.mapping.targets import ValueShape
 from backend.llm.client import LLMResponse, LLMUnavailable
 
 # A realistic low-margin column: the header is ambiguous and the values are a
@@ -151,6 +155,42 @@ def test_rejects_value_shape_the_column_does_not_have():
     # with 'category' here; 'currency' belongs to neither, which is why it fails.
     assert "currency" in failure
     assert "place_name" in failure or "category" in failure
+
+
+@pytest.mark.parametrize("prose", ["nominal", "small whole number", "text"])
+def test_prose_value_shape_fails_as_vocabulary_not_as_a_false_citation(prose):
+    """Both strings here are verbatim real llama3.1 output on sample1.
+
+    The model named the correct target for `Const` and `Stories` and described the
+    shape in its own words. The verifier rejected both — correctly, since an
+    unrecognised token cannot be checked — but reported it as "covers 0% of
+    values; the column is actually 'place_name'", which reads as a caught
+    hallucination about the data. It was nothing of the kind.
+
+    So this asserts the distinction, not just the rejection: a token outside the
+    vocabulary must fail `value_shape_vocabulary` and must NOT claim the column
+    looks like something else.
+    """
+    result = _verify(value_shape=prose)
+    assert not result.accepted
+    failure = next(f for f in result.failures if f.startswith("value_shape_vocabulary"))
+    assert prose in failure
+    assert not any(f.startswith("value_shape_observed") for f in result.failures)
+    # The message has to be actionable: it names the vocabulary it wanted.
+    assert "small_int" in failure and "category" in failure
+
+
+def test_system_prompt_states_every_legal_value_shape():
+    """The drift guard for the bug above.
+
+    `VALUE_SHAPES` comes from `get_args(ValueShape)`, so a new shape added to the
+    enum reaches the prompt automatically. This test fails if someone replaces the
+    derived list with a hand-written one, which is how the prompt and the verifier
+    disagreed in the first place.
+    """
+    assert set(VALUE_SHAPES) == set(get_args(ValueShape))
+    for shape in VALUE_SHAPES:
+        assert shape in SYSTEM_PROMPT, f"prompt never names the legal shape '{shape}'"
 
 
 def test_rejects_sample_value_not_present_in_the_column():

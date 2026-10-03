@@ -16,7 +16,8 @@ computed by the channels. A proposal survives only if all of these hold:
      runner-up) — the model may choose between them, not invent a third
   4. any cited glossary phrase genuinely exists in that target's glossary
   5. any cited glossary phrase genuinely resembles the real source header
-  6. any cited value shape matches the shape actually observed in the column
+  6. any cited value shape names a real shape token, and matches the shape
+     actually observed in the column
   7. any quoted sample value genuinely appears in the column
   8. a rationale is present
 
@@ -35,7 +36,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Optional, get_args
 
 from rapidfuzz import fuzz
 
@@ -46,7 +47,7 @@ from backend.agents.mapping.channels.fingerprint import (
 )
 from backend.agents.mapping.channels.lexical import normalise_header, prepare
 from backend.agents.mapping.solver import Assignment
-from backend.agents.mapping.targets import GLOSSARY, TARGETS
+from backend.agents.mapping.targets import GLOSSARY, TARGETS, ValueShape
 from backend.llm.client import LLMClient, LLMUnavailable
 
 logger = logging.getLogger(__name__)
@@ -61,8 +62,22 @@ CITATION_SIMILARITY_FLOOR = 0.55
 # observed values to count as a true description of it.
 SHAPE_SHARE_FLOOR = 0.20
 
-SYSTEM_PROMPT = """You are an insurance data analyst adjudicating a single ambiguous \
-column mapping in a commercial property Statement of Values.
+# The only value-shape tokens the verifier can check a citation against. Derived
+# from the `ValueShape` enum rather than restated, so the prompt cannot drift
+# away from what `equivalent_share` will recognise.
+#
+# Enumerating these in the prompt is not cosmetic. The prompt previously asked for
+# "the dominant shape of the sample values" — an open invitation to prose — while
+# check 6 compared the answer to this closed vocabulary. A real llama3.1 run on
+# sample1 chose the correct target for both low-margin columns and had both
+# proposals discarded, one for answering "nominal" and one for "small whole
+# number". The model was right twice and scored 0/2, because the contract demanded
+# a vocabulary it never supplied.
+VALUE_SHAPES: tuple[str, ...] = get_args(ValueShape)
+
+SYSTEM_PROMPT = (
+    """You are an insurance data analyst adjudicating a single ambiguous column \
+mapping in a commercial property Statement of Values.
 
 You will be given one source column — its header, sample values, and the two \
 candidate target fields that deterministic scoring could not separate — and you must \
@@ -72,19 +87,36 @@ Rules you must follow:
 - Choose ONLY from the two candidate targets given. Do not propose any other field.
 - Cite only evidence that is actually present in the data shown to you. Every \
 citation is independently re-checked against the source by code, and a proposal \
-containing any unverifiable citation is discarded in full.
+containing any unverifiable citation is discarded in full — including when the \
+target you chose was correct.
+- "glossary_phrase" must be copied character-for-character from the chosen \
+candidate's "glossary_phrases" list. Do not paraphrase it, and do not invent a \
+phrase that merely sounds like one of them.
+- "sample_value" must be copied character-for-character from the "sample_values" \
+list.
+- "value_shape" must be exactly one of these tokens, lowercase and underscored as \
+written:
+  """
+    + ", ".join(VALUE_SHAPES)
+    + """
+  These are the only shapes the checker recognises. A description in your own \
+words — "nominal", "small whole number", "text" — is not one of them, and will \
+discard the proposal even if everything else in it was right.
+- Use null for any citation you cannot copy directly from the data shown. A \
+guessed citation is worse than no citation.
 - If the evidence genuinely does not separate the two candidates, say so by setting \
 "target" to null. Declining is a valid and useful answer; guessing is not.
 
 Respond with a JSON object only:
 {
   "target": "<one of the two candidate target names, or null>",
-  "glossary_phrase": "<the glossary phrase supporting your choice, or null>",
-  "value_shape": "<the dominant shape of the sample values, or null>",
-  "sample_value": "<one sample value you are relying on, or null>",
+  "glossary_phrase": "<a phrase copied verbatim from that candidate's glossary_phrases, or null>",
+  "value_shape": "<exactly one token from the list above, or null>",
+  "sample_value": "<one value copied verbatim from sample_values, or null>",
   "rationale": "<one or two sentences explaining the choice>",
   "confidence": <float between 0 and 1>
 }"""
+)
 
 
 @dataclass
@@ -225,28 +257,45 @@ def verify_proposal(
             else:
                 verified.append("glossary_phrase_matches_header")
 
-    # 6. A cited value shape must describe the column as actually observed.
+    # 6. A cited value shape must be a shape this system can observe at all, and
+    #    must then describe the column as actually observed.
     if proposal.value_shape:
-        fingerprint = profile_column(values)
-        distribution = fingerprint.distribution
-        # Equivalent shapes count: this channel cannot separate `category` from
-        # `place_name`, so rejecting a citation of one because the profiler
-        # happened to label the column the other would discard a true statement.
-        share = equivalent_share(distribution, proposal.value_shape)
-        if not distribution:
+        if proposal.value_shape.lower().strip() not in VALUE_SHAPES:
+            # Reported as its own failure rather than folded into the share check
+            # below, because the two mean different things to whoever reads the
+            # audit. A token outside the vocabulary is a contract failure — the
+            # model described the shape in prose instead of naming one — and says
+            # nothing about whether the column looks the way it claims. Collapsing
+            # it into "covers 0% of values; the column is actually 'place_name'"
+            # reads as a caught hallucination, and that misreading is not
+            # hypothetical: it is how a real llama3.1 run's two correct answers
+            # were recorded before `VALUE_SHAPES` reached the prompt.
             failures.append(
-                f"value_shape_observed: cited shape '{proposal.value_shape}' cannot be "
-                "checked because the column has no readable values"
-            )
-        elif share < SHAPE_SHARE_FLOOR:
-            observed = max(distribution, key=lambda s: distribution[s])
-            failures.append(
-                f"value_shape_observed: cited shape '{proposal.value_shape}' covers "
-                f"{share:.0%} of values; the column is actually '{observed}' "
-                f"({distribution[observed]:.0%})"
+                f"value_shape_vocabulary: cited shape '{proposal.value_shape}' is not "
+                f"a recognised shape token ({', '.join(VALUE_SHAPES)}), so the claim "
+                "cannot be checked against the column"
             )
         else:
-            verified.append("value_shape_observed")
+            fingerprint = profile_column(values)
+            distribution = fingerprint.distribution
+            # Equivalent shapes count: this channel cannot separate `category` from
+            # `place_name`, so rejecting a citation of one because the profiler
+            # happened to label the column the other would discard a true statement.
+            share = equivalent_share(distribution, proposal.value_shape)
+            if not distribution:
+                failures.append(
+                    f"value_shape_observed: cited shape '{proposal.value_shape}' cannot "
+                    "be checked because the column has no readable values"
+                )
+            elif share < SHAPE_SHARE_FLOOR:
+                observed = max(distribution, key=lambda s: distribution[s])
+                failures.append(
+                    f"value_shape_observed: cited shape '{proposal.value_shape}' covers "
+                    f"{share:.0%} of values; the column is actually '{observed}' "
+                    f"({distribution[observed]:.0%})"
+                )
+            else:
+                verified.append("value_shape_observed")
 
     # 7. A quoted sample value must genuinely appear in the column.
     if proposal.sample_value:
