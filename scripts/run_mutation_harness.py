@@ -53,7 +53,7 @@ def create_mutated_test_cases(output_dir: Path) -> list[dict[str, Any]]:
         "Yr Blt": "Year Built",
         "Sprk": "Fire Sprinklers (Y/N)",
     }
-    tc1_injected_issues = ["DQ-ZIP-01", "DQ-CURR-01", "DQ-YR-01"]
+    tc1_injected_issues = ["DQ-07", "DQ-08", "DQ-09", "DQ-10"]
     tc1_rows = [
         ["LOC-1", "100 Main St", "Boston", "MA", "2110", "$1,000,000.00", 500000, 100000, "Office", "Masonry", 2, 1, 1995, "Y"],
         ["LOC-2", "200 Ocean Ave", "Miami", "FL", "33101", 2500000, 800000, 200000, "Retail", "Frame", 1, 1, 1900, "N"],
@@ -96,7 +96,7 @@ def create_mutated_test_cases(output_dir: Path) -> list[dict[str, Any]]:
         "Construction": "Construction",
         "Year Built": "Year Built",
     }
-    tc2_injected_issues = ["DQ-ZIP-01", "DQ-YR-01"]
+    tc2_injected_issues = ["DQ-07", "DQ-09", "DQ-12"]
     tc2_rows = [
         [101, "50 Industrial Way", "Dallas", "Texas", "75001", 3000000, 1200000, 300000, "Warehouse", "Metal", 2005],
         [102, "80 Commercial Rd", "Austin", "TX", "7870", 1500000, 400000, 50000, "Office", "Masonry", 0],
