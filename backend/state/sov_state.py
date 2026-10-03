@@ -52,6 +52,23 @@ class Issue(BaseModel):
     severity: Severity
 
 
+from datetime import datetime
+from uuid import uuid4
+
+
+class AuditEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    row: Any
+    field: str
+    source_column: str
+    op: str
+    before: str
+    after: str
+    by: str = "human_reviewer"
+    at: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
 class Decision(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -59,7 +76,7 @@ class Decision(BaseModel):
     action: Literal["accept", "reject", "edit"]
     note: Optional[str] = None
     by: str
-    at: str
+    at: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
 class TraceEvent(BaseModel):

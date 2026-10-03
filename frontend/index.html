@@ -1239,6 +1239,11 @@
         document.getElementById('fileNameDisplay').textContent = input.files[0].name;
       }
     }
+
+    let currentRunId = null;
+    let currentDecisions = {};
+    let latestRunData = null;
+
     async function handleFileUpload(e) {
       e.preventDefault();
       const input = document.getElementById('fileInput');
@@ -1249,7 +1254,6 @@
 
       const submitBtn = document.getElementById('submitBtn');
       const outputDiv = document.getElementById('pipelineOutput');
-      const outputPre = document.getElementById('outputContent');
       const runIdBadge = document.getElementById('runIdBadge');
 
       submitBtn.disabled = true;
@@ -1267,20 +1271,225 @@
         
         outputDiv.classList.remove('hidden');
         if (response.ok) {
-          runIdBadge.textContent = 'Run ID: ' + (data.run_id || 'N/A');
-          outputPre.textContent = JSON.stringify(data, null, 2);
+          latestRunData = data;
+          renderPipelineUI(data);
         } else {
           runIdBadge.textContent = 'Error';
-          outputPre.textContent = JSON.stringify(data, null, 2);
+          document.getElementById('outputContent').textContent = JSON.stringify(data, null, 2);
         }
       } catch (err) {
         outputDiv.classList.remove('hidden');
         runIdBadge.textContent = 'Network Error';
-        outputPre.textContent = 'Failed to communicate with ASSAY server: ' + err.message;
+        document.getElementById('outputContent').textContent = 'Failed to communicate with ASSAY server: ' + err.message;
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Start Pipeline Run';
       }
+    }
+
+    function setDecision(recId, action) {
+      currentDecisions[recId] = action;
+      const btnAccept = document.getElementById(`btn-accept-${recId}`);
+      const btnReject = document.getElementById(`btn-reject-${recId}`);
+
+      if (btnAccept && btnReject) {
+        if (action === 'accept') {
+          btnAccept.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-emerald-600 text-white border-emerald-600';
+          btnReject.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-red-800 border-red-300 hover:bg-red-50';
+        } else {
+          btnReject.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-red-600 text-white border-red-600';
+          btnAccept.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50';
+        }
+      }
+    }
+
+    function approveAllRecs() {
+      if (!latestRunData || !latestRunData.recommendations) return;
+      latestRunData.recommendations.forEach((rec, idx) => {
+        const recId = rec.id || `R-${idx}`;
+        setDecision(recId, 'accept');
+      });
+    }
+
+    async function submitReviewDecisions() {
+      if (!currentRunId || !latestRunData) return;
+      const submitBtn = document.getElementById('submitDecisionsBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Executing Agent 4 Transformation Engine...';
+      }
+
+      const recs = latestRunData.recommendations || [];
+      const decisionsList = recs.map((rec, idx) => {
+        const recId = rec.id || `R-${idx}`;
+        return {
+          rec_id: recId,
+          action: currentDecisions[recId] || 'accept',
+          note: 'Approved via ASSAY Underwriter Review UI',
+          by: 'underwriter_reviewer'
+        };
+      });
+
+      try {
+        const response = await fetch(`/api/runs/${currentRunId}/decisions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decisions: decisionsList })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          latestRunData = data;
+          renderPipelineUI(data);
+        } else {
+          alert('Transformation failed: ' + (data.detail?.message || JSON.stringify(data)));
+        }
+      } catch (err) {
+        alert('Error submitting decisions: ' + err.message);
+      }
+    }
+
+    function renderPipelineUI(data) {
+      currentRunId = data.run_id;
+      const outputDiv = document.getElementById('pipelineOutput');
+      const runIdBadge = document.getElementById('runIdBadge');
+      const outputPre = document.getElementById('outputContent');
+
+      outputDiv.classList.remove('hidden');
+      runIdBadge.textContent = 'Run ID: ' + (data.run_id || 'N/A');
+
+      let html = '';
+      const qualityScore = data.quality?.intake_quality_score || 0;
+      const recs = data.recommendations || [];
+      const status = data.status || 'completed';
+
+      html += `
+        <div class="space-y-6 text-left font-sans">
+          <!-- Overview Banner -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#FFFDF9] p-4 rounded-xl border border-[#E5DEC9] shadow-sm">
+            <div>
+              <span class="text-xs text-[#8C7E6A] font-bold block">INTAKE QUALITY SCORE</span>
+              <span class="text-2xl font-extrabold ${qualityScore >= 80 ? 'text-emerald-700' : 'text-amber-700'}">${qualityScore}%</span>
+            </div>
+            <div>
+              <span class="text-xs text-[#8C7E6A] font-bold block">PRIMARY SHEET</span>
+              <span class="text-sm font-semibold text-[#0A0A0A]">${data.manifest?.[0]?.sheet || 'N/A'}</span>
+            </div>
+            <div>
+              <span class="text-xs text-[#8C7E6A] font-bold block">RECOMMENDATIONS</span>
+              <span class="text-sm font-semibold text-[#0A0A0A]">${recs.length} Items</span>
+            </div>
+            <div>
+              <span class="text-xs text-[#8C7E6A] font-bold block">PIPELINE STATUS</span>
+              <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-md ${status === 'awaiting_review' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
+                ${status === 'awaiting_review' ? '🧑 Human Review Required' : '✅ Completed'}
+              </span>
+            </div>
+          </div>
+      `;
+
+      if (status === 'awaiting_review' && recs.length > 0) {
+        html += `
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-bold text-[#0A0A0A]">Human Underwriter Review Queue (LangGraph Interrupt Gate)</h3>
+              <button onclick="approveAllRecs()" class="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-1.5 rounded-lg transition shadow-sm">
+                ✓ Approve All Recommendations
+              </button>
+            </div>
+
+            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+        `;
+
+        recs.forEach((rec, idx) => {
+          const recId = rec.id || `R-${idx}`;
+          currentDecisions[recId] = currentDecisions[recId] || 'accept';
+          const beforeAfter = rec.before_after || [];
+
+          html += `
+            <div class="bg-[#FFFDF9] border border-[#E5DEC9] rounded-xl p-4 shadow-sm space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5DEC9] pb-2">
+                <div class="flex items-center gap-2">
+                  <span class="bg-[#0A0A0A] text-[#FAF7F2] text-xs font-bold px-2 py-0.5 rounded">${recId}</span>
+                  <span class="bg-amber-100 text-amber-900 text-xs font-bold px-2 py-0.5 rounded border border-amber-200">${rec.rule || 'DQ'}</span>
+                  <span class="text-sm font-bold text-[#0A0A0A]">Field: ${rec.field || rec.source_column || 'Data Row'}</span>
+                </div>
+                <div class="text-xs text-[#8C7E6A] font-medium">Rows: ${rec.rows ? rec.rows.join(', ') : 'All'}</div>
+              </div>
+
+              <p class="text-xs text-[#57524A] leading-relaxed">${rec.rationale || rec.detail || ''}</p>
+
+              ${beforeAfter.length > 0 ? `
+                <div class="bg-[#F4EFE6] p-2.5 rounded-lg text-xs font-mono space-y-1">
+                  <div class="text-[10px] text-[#8C7E6A] font-bold">WORKED EXAMPLE (BEFORE → AFTER):</div>
+                  ${beforeAfter.slice(0, 3).map(ba => `
+                    <div class="flex items-center gap-2">
+                      <span class="text-red-700 line-through">${ba.before}</span>
+                      <span>→</span>
+                      <span class="text-emerald-700 font-bold">${ba.after !== null ? ba.after : '(SET NULL)'}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <!-- Decision Action Control -->
+              <div class="flex items-center justify-between pt-1">
+                <div class="flex items-center gap-2 text-xs">
+                  <label class="font-bold text-[#0A0A0A]">Decision:</label>
+                  <button onclick="setDecision('${recId}', 'accept')" id="btn-accept-${recId}" class="px-3 py-1 rounded-lg border text-xs font-semibold transition ${currentDecisions[recId] === 'accept' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50'}">
+                    Accept
+                  </button>
+                  <button onclick="setDecision('${recId}', 'reject')" id="btn-reject-${recId}" class="px-3 py-1 rounded-lg border text-xs font-semibold transition ${currentDecisions[recId] === 'reject' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-800 border-red-300 hover:bg-red-50'}">
+                    Reject
+                  </button>
+                </div>
+                <span class="text-xs text-[#8C7E6A]">Op: <code class="bg-[#EFE8DB] px-1.5 py-0.5 rounded font-mono">${rec.op || 'flag'}</code></span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+
+            <button onclick="submitReviewDecisions()" id="submitDecisionsBtn" class="w-full bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-extrabold text-base py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+              <span>Approve & Execute Transformation Engine (Agent 4)</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        `;
+      }
+
+      if (status === 'completed') {
+        html += `
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-4">
+            <div class="w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-xl font-bold shadow-md">✓</div>
+            <div>
+              <h3 class="text-xl font-extrabold text-emerald-950">Transformation Completed Successfully!</h3>
+              <p class="text-xs text-emerald-800 mt-1">Every approved operation has been applied deterministically. Audit log generated.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <a href="/api/runs/${data.run_id}/download/sov" download="Cleaned_SOV.xlsx" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm px-6 py-3 rounded-xl transition shadow-md flex items-center gap-2">
+                <span>📥 Download Cleaned SOV (Cleaned_SOV.xlsx)</span>
+              </a>
+              <a href="/api/runs/${data.run_id}/download/audit" download="Audit_Log.xlsx" class="bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-bold text-sm px-6 py-3 rounded-xl transition shadow-md flex items-center gap-2">
+                <span>📋 Download Audit Log (Audit_Log.xlsx)</span>
+              </a>
+            </div>
+          </div>
+        `;
+      }
+
+      // Raw JSON accordion
+      html += `
+        <details class="pt-4 text-xs">
+          <summary class="cursor-pointer font-bold text-[#8C7E6A] hover:text-[#0A0A0A]">Toggle Raw Pipeline State JSON</summary>
+          <pre class="mt-2 bg-[#141414] text-emerald-400 p-4 rounded-xl overflow-x-auto text-[11px] font-mono leading-relaxed max-h-96">${JSON.stringify(data, null, 2)}</pre>
+        </details>
+      </div>
+      `;
+
+      outputPre.innerHTML = html;
     }
 
     // Terms & Data Privacy Modal Logic

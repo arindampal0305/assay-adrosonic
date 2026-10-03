@@ -75,6 +75,17 @@ def _quality_present(state: SOVState) -> bool:
     return bool(state.quality) and "intake_quality_score" in state.quality
 
 
+def _all_decided(state: SOVState) -> bool:
+    """C-01: No transformation without explicit human approval.
+
+    Agent 4 accepts only recommendations with status approved or edited. The
+    graph cannot reach Agent 4 past the interrupt while anything is pending.
+    """
+    if not state.recommendations:
+        return True
+    return all(rec.get("status") in {"approved", "rejected", "edited", "escalated"} for rec in state.recommendations)
+
+
 PRECONDITIONS: dict[str, tuple[Precondition, ...]] = {
     "sheet_intelligence": (
         (lambda s: bool(s.source.file_path), "source.file_path is required to read the workbook"),
@@ -102,6 +113,7 @@ PRECONDITIONS: dict[str, tuple[Precondition, ...]] = {
             "mapping resolved no columns to target fields; there is nothing to transform",
         ),
         (_quality_present, "quality is empty; Agent 3 produced no data-quality assessment"),
+        (_all_decided, "undecided recommendations remain; human review must decide all recommendations before transformation"),
     ),
 }
 

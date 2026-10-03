@@ -1,24 +1,34 @@
-"""Minimal FastAPI entrypoint: upload a file, run the graph, return the manifest."""
+"""FastAPI backend application for ASSAY: SOV Cleansing System.
+
+REST API + Server-Sent Events (SSE) streaming + Human-in-the-Loop review endpoints.
+"""
 
 from __future__ import annotations
 
+import asyncio
+import json
 import os
 import tempfile
 from pathlib import Path
+from typing import Any, AsyncGenerator, Optional
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from langgraph.types import Command
+from pydantic import BaseModel
 
+from backend.graph import COMPILED_GRAPH, initial_state, run_pipeline
 from backend.ingest.loader import IngestError
-from backend.graph import run_pipeline
 from backend.state.gates import ContractViolation
+from backend.state.sov_state import SOVState
 
 UPLOAD_DIR = Path(os.getenv("ASSAY_UPLOAD_DIR", "data/uploads"))
+OUTPUT_DIR = Path("data/outputs")
 FRONTEND_DIR = Path("frontend")
 
-app = FastAPI(title="ASSAY", version="0.1.0")
+app = FastAPI(title="ASSAY", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,6 +41,23 @@ app.add_middleware(
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
+
+class DecisionItem(BaseModel):
+    rec_id: str
+    action: str  # accept | reject | edit
+    note: Optional[str] = ""
+    by: Optional[str] = "human_reviewer"
+    edited_op: Optional[str] = None
+
+
+class DecisionsPayload(BaseModel):
+    decisions: list[DecisionItem]
+
+
+# Store active graph states by run_id in memory
+RUN_STATES: dict[str, SOVState] = {}
+
+
 @app.get("/", response_class=FileResponse)
 async def serve_index():
     index_file = FRONTEND_DIR / "index.html"
@@ -39,9 +66,9 @@ async def serve_index():
     raise HTTPException(status_code=404, detail="Frontend index.html not found.")
 
 
-
 @app.post("/api/runs")
 async def create_run(file: UploadFile = File(...)):
+    """Upload SOV workbook and start pipeline up to Human Review Gate."""
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     suffix = Path(file.filename or "").suffix.lower()
     payload = await file.read()
@@ -56,30 +83,132 @@ async def create_run(file: UploadFile = File(...)):
         stored = Path(handle.name)
 
     try:
-        state = run_pipeline(stored, file.filename)
+        init_st = initial_state(stored, file.filename)
+        run_id = init_st.run_id
+        config = {"configurable": {"thread_id": run_id}}
+
+        # Invoke graph until interrupt or completion
+        raw_result = COMPILED_GRAPH.invoke(init_st, config=config)
+
+        state_snapshot = COMPILED_GRAPH.get_state(config)
+        next_nodes = state_snapshot.next if state_snapshot else ()
+        is_interrupted = bool(next_nodes)
+
+        current_val = state_snapshot.values if (state_snapshot and state_snapshot.values) else raw_result
+        if isinstance(current_val, SOVState):
+            state = current_val
+        else:
+            state = SOVState.model_validate(current_val)
+
+        RUN_STATES[run_id] = state
+
     except IngestError as exc:
         raise HTTPException(status_code=422, detail={"code": "ingest_error", "message": str(exc)})
     except ContractViolation as exc:
-        raise HTTPException(
-            status_code=422, detail={"code": "contract_violation", "message": str(exc)}
-        )
+        raise HTTPException(status_code=422, detail={"code": "contract_violation", "message": str(exc)})
 
+    return _serialize_state(state, is_interrupted=is_interrupted)
+
+
+@app.get("/api/runs/{run_id}")
+async def get_run(run_id: str):
+    """Fetch current state and recommendations for a run."""
+    config = {"configurable": {"thread_id": run_id}}
+    state_snapshot = COMPILED_GRAPH.get_state(config)
+
+    if not state_snapshot or not state_snapshot.values:
+        if run_id in RUN_STATES:
+            return _serialize_state(RUN_STATES[run_id], is_interrupted=False)
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found.")
+
+    current_val = state_snapshot.values
+    state = current_val if isinstance(current_val, SOVState) else SOVState.model_validate(current_val)
+    is_interrupted = bool(state_snapshot.next)
+
+    return _serialize_state(state, is_interrupted=is_interrupted)
+
+
+@app.post("/api/runs/{run_id}/decisions")
+async def submit_decisions(run_id: str, payload: DecisionsPayload = Body(...)):
+    """Submit reviewer decisions and resume graph execution to completion (Agent 4)."""
+    config = {"configurable": {"thread_id": run_id}}
+    state_snapshot = COMPILED_GRAPH.get_state(config)
+
+    if not state_snapshot:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found.")
+
+    decisions_data = [d.model_dump() for d in payload.decisions]
+
+    try:
+        # Resume graph execution with decisions
+        raw_result = COMPILED_GRAPH.invoke(Command(resume=decisions_data), config=config)
+        state_snapshot = COMPILED_GRAPH.get_state(config)
+
+        current_val = state_snapshot.values if (state_snapshot and state_snapshot.values) else raw_result
+        if isinstance(current_val, dict) and "audit" in current_val and current_val["audit"]:
+            current_val["audit"] = [a.model_dump() if hasattr(a, "model_dump") else a for a in current_val["audit"]]
+
+        state = current_val if isinstance(current_val, SOVState) else SOVState.model_validate(current_val)
+        is_interrupted = bool(state_snapshot.next if state_snapshot else ())
+
+        RUN_STATES[run_id] = state
+
+    except ContractViolation as exc:
+        raise HTTPException(status_code=422, detail={"code": "contract_violation", "message": str(exc)})
+
+    return _serialize_state(state, is_interrupted=is_interrupted)
+
+
+@app.get("/api/runs/{run_id}/stream")
+async def stream_run_trace(run_id: str):
+    """Server-Sent Events (SSE) endpoint streaming execution trace and status."""
+    async def event_generator() -> AsyncGenerator[str, None]:
+        config = {"configurable": {"thread_id": run_id}}
+        state_snapshot = COMPILED_GRAPH.get_state(config)
+
+        if state_snapshot and state_snapshot.values:
+            val = state_snapshot.values
+            state = val if isinstance(val, SOVState) else SOVState.model_validate(val)
+            for trace_event in state.trace:
+                yield f"data: {json.dumps(trace_event.model_dump())}\n\n"
+                await asyncio.sleep(0.05)
+
+        yield "data: {\"event\": \"stream_end\"}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.get("/api/runs/{run_id}/download/sov")
+async def download_cleaned_sov(run_id: str):
+    """Download output Cleaned_SOV.xlsx."""
+    file_path = OUTPUT_DIR / "Cleaned_SOV.xlsx"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Cleaned_SOV.xlsx has not been generated yet.")
+    return FileResponse(file_path, filename="Cleaned_SOV.xlsx")
+
+
+@app.get("/api/runs/{run_id}/download/audit")
+async def download_audit_log(run_id: str):
+    """Download output Audit_Log.xlsx."""
+    file_path = OUTPUT_DIR / "Audit_Log.xlsx"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Audit_Log.xlsx has not been generated yet.")
+    return FileResponse(file_path, filename="Audit_Log.xlsx")
+
+
+def _serialize_state(state: SOVState, is_interrupted: bool = False) -> dict[str, Any]:
     return {
         "run_id": state.run_id,
         "version": state.version,
+        "status": "awaiting_review" if is_interrupted else "completed",
+        "is_interrupted": is_interrupted,
         "source": state.source.model_dump(exclude={"file_path"}),
         "manifest": [entry.model_dump(by_alias=True) for entry in state.manifest],
         "mapping": state.mapping,
-        # Agent 3's assessment and its proposals. `recommendations` is the list a
-        # reviewer acts on; `quality` is the evidence behind the score shown beside
-        # it. Both are returned in full rather than summarised, because the entire
-        # point of `score_components` and `rules_not_applicable` is to be
-        # inspectable by whoever distrusts the number.
         "quality": state.quality,
         "recommendations": state.recommendations,
+        "decisions": [d.model_dump() if hasattr(d, "model_dump") else d for d in state.decisions],
         "issues": [issue.model_dump() for issue in state.issues],
-        # Exposed so a reviewer can see every LLM proposal that was discarded, not
-        # just the mappings that survived.
-        "audit": state.audit,
+        "audit": [a.model_dump() if hasattr(a, "model_dump") else a for a in state.audit],
         "trace": [event.model_dump() for event in state.trace],
     }
