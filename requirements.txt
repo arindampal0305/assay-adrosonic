@@ -5,3 +5,10 @@ python-multipart>=0.0.12
 pandas>=2.2.0
 openpyxl>=3.1.0
 pydantic>=2.9.0
+
+# Milestone 2 — Agent 2 schema mapping
+rapidfuzz>=3.9
+scipy>=1.14
+sentence-transformers>=3.0
+openai>=1.50
+pytest>=8.0

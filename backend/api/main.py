@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend.agents.sheet_intel.loader import IngestError
+from backend.ingest.loader import IngestError
 from backend.graph import run_pipeline
 from backend.state.gates import ContractViolation
 
@@ -69,5 +69,10 @@ async def create_run(file: UploadFile = File(...)):
         "version": state.version,
         "source": state.source.model_dump(exclude={"file_path"}),
         "manifest": [entry.model_dump(by_alias=True) for entry in state.manifest],
+        "mapping": state.mapping,
+        "issues": [issue.model_dump() for issue in state.issues],
+        # Exposed so a reviewer can see every LLM proposal that was discarded, not
+        # just the mappings that survived.
+        "audit": state.audit,
         "trace": [event.model_dump() for event in state.trace],
     }

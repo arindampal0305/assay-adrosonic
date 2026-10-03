@@ -82,7 +82,11 @@ class SOVState(BaseModel):
     issues: Annotated[list[Issue], operator.add] = Field(default_factory=list)
     recommendations: list[dict[str, Any]] = Field(default_factory=list)
     decisions: list[Decision] = Field(default_factory=list)
-    audit: list[dict[str, Any]] = Field(default_factory=list)
+    # Append-only, like issues and trace. Agent 2 records every LLM proposal it
+    # discarded here and Agent 4 will append the ops it applies; neither must be
+    # able to erase the other's record, so an agent returning audit entries adds
+    # to the log rather than replacing it.
+    audit: Annotated[list[dict[str, Any]], operator.add] = Field(default_factory=list)
     trace: Annotated[list[TraceEvent], operator.add] = Field(default_factory=list)
 
     def primary_sheet(self) -> Optional[SheetManifestEntry]:

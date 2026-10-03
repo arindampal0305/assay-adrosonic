@@ -51,6 +51,19 @@ def _exactly_one_primary(state: SOVState) -> bool:
     return sum(1 for e in state.manifest if e.class_ == "Primary") == 1
 
 
+def _mapping_present(state: SOVState) -> bool:
+    """Agent 2 is real as of milestone 2, so a downstream agent running against an
+    empty mapping is now a bug rather than an expected stub state."""
+    return bool(state.mapping) and "mappings" in state.mapping
+
+
+def _mapping_resolves_something(state: SOVState) -> bool:
+    """Validating rows or transforming a sheet with zero resolved columns would
+    produce a confidently empty output file, which is worse than stopping."""
+    mappings = state.mapping.get("mappings") or []
+    return any(m.get("target") for m in mappings)
+
+
 PRECONDITIONS: dict[str, tuple[Precondition, ...]] = {
     "sheet_intelligence": (
         (lambda s: bool(s.source.file_path), "source.file_path is required to read the workbook"),
@@ -63,10 +76,20 @@ PRECONDITIONS: dict[str, tuple[Precondition, ...]] = {
     "data_quality": (
         (lambda s: len(s.manifest) > 0, "manifest is empty"),
         (_exactly_one_primary, "manifest must contain exactly one Primary sheet"),
+        (_mapping_present, "mapping is empty; Agent 2 produced no column mapping"),
+        (
+            _mapping_resolves_something,
+            "mapping resolved no columns to target fields; there is nothing to validate",
+        ),
     ),
     "transformation": (
         (lambda s: len(s.manifest) > 0, "manifest is empty"),
         (_exactly_one_primary, "manifest must contain exactly one Primary sheet"),
+        (_mapping_present, "mapping is empty; Agent 2 produced no column mapping"),
+        (
+            _mapping_resolves_something,
+            "mapping resolved no columns to target fields; there is nothing to transform",
+        ),
     ),
 }
 
