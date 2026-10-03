@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from backend.agents.sheet_intel.loader import SUPPORTED_SUFFIXES, IngestError  # noqa: E402
+from backend.ingest.loader import SUPPORTED_SUFFIXES, IngestError  # noqa: E402
 from backend.graph import run_pipeline  # noqa: E402
 from backend.state.gates import ContractViolation  # noqa: E402
 
