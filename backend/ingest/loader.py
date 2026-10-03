@@ -19,7 +19,16 @@ from typing import Any, Optional
 import openpyxl
 import pandas as pd
 
-MAX_DATA_ROWS = 5000
+# Per-sheet row ceiling. This is a guard against a pathological upload, not a
+# statement about how big an SOV may be, so it is set where a synchronous request
+# stops being reasonable rather than anywhere near a plausible schedule.
+#
+# Measured end-to-end on this machine after header scoring was changed to sample
+# the body (see `type_consistency_below`): 5,000 rows 3.8s, 20,000 rows 10.9s,
+# 50,000 rows 22.9s — linear at roughly 0.45ms/row, with mapping output identical
+# at every size. The old 5,000 value predated that change, when a single 5,500-row
+# sheet cost 15s of repeated full-body scans.
+MAX_DATA_ROWS = 50_000
 SUPPORTED_SUFFIXES = {".xlsx", ".csv"}
 
 
@@ -69,6 +78,10 @@ class LoadedWorkbook:
     file_name: str
     sha256: str
     sheets: list[LoadedSheet]
+    # Sheets dropped for exceeding MAX_DATA_ROWS, as (name, n_rows). Carried rather
+    # than discarded so the caller can tell the reader *which* tab was skipped
+    # instead of silently analysing a subset of the workbook.
+    oversized_sheets: list[tuple[str, int]] = field(default_factory=list)
 
 
 def _normalise_cell(value: Any) -> Any:
@@ -193,11 +206,25 @@ def load_workbook_file(path: Path | str, file_name: Optional[str] = None) -> Loa
     if not sheets:
         raise IngestError(f"'{display_name}' contains no readable rows on any sheet.")
 
-    largest = max(s.n_rows for s in sheets)
-    if largest > MAX_DATA_ROWS + 50:
+    # The row ceiling bounds the work done on a sheet, so it belongs to the sheet
+    # and not to the workbook. Applying it workbook-wide rejected a real SOV whose
+    # schedule of values was 871 rows, because the same file carried an unrelated
+    # 5,551-row `All Autos` tab — an auto schedule this system never looks at. The
+    # oversized tab is dropped and named; the file is only refused when nothing
+    # processable is left, which is the case the limit actually exists for.
+    ceiling = MAX_DATA_ROWS + 50
+    oversized = [(s.name, s.n_rows) for s in sheets if s.n_rows > ceiling]
+    sheets = [s for s in sheets if s.n_rows <= ceiling]
+    if not sheets:
+        biggest = max(n for _, n in oversized)
         raise IngestError(
-            f"'{display_name}' has {largest} rows on its largest sheet, above the "
-            f"{MAX_DATA_ROWS}-row limit. Please split the file and upload the parts."
+            f"every sheet in '{display_name}' is above the {MAX_DATA_ROWS}-row limit "
+            f"(largest {biggest} rows). Please split the file and upload the parts."
         )
 
-    return LoadedWorkbook(file_name=display_name, sha256=_sha256(path), sheets=sheets)
+    return LoadedWorkbook(
+        file_name=display_name,
+        sha256=_sha256(path),
+        sheets=sheets,
+        oversized_sheets=oversized,
+    )
