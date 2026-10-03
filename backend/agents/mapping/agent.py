@@ -239,21 +239,53 @@ def schema_mapping(state: SOVState) -> dict[str, Any]:
         a for a in assignments
         if a.target is not None and a.margin < LOW_MARGIN_THRESHOLD
     ]
+
+    mappings: list[ColumnMapping] = []
+    audit: list[dict[str, Any]] = []
+    issues: list[Issue] = []
+
     if client is not None:
         for assignment in low_margin:
             outcomes[assignment.column_index] = adjudicate(
                 client, assignment, columns[assignment.column_index]
             )
     elif low_margin:
+        # Skipping adjudication is a legitimate degraded mode, but it was previously
+        # recorded only as a log line. That made it invisible in the run output: a
+        # reader saw `adjudicator_consulted: 0` next to two columns sitting under the
+        # documented 0.15 threshold and had no way to tell a missing key from a
+        # broken margin check. The semantic channel already reports its own
+        # unavailability as an issue plus an audit record; this now matches it.
         logger.info(
             "%d low-margin column(s) present but no LLM is configured; deterministic "
             "assignments stand unadjudicated",
             len(low_margin),
         )
-
-    mappings: list[ColumnMapping] = []
-    audit: list[dict[str, Any]] = []
-    issues: list[Issue] = []
+        issues.append(Issue(rule="adjudicator_unavailable", severity="Medium"))
+        audit.append(
+            {
+                "agent": "schema_mapping",
+                "event": "adjudication_skipped",
+                "reason": "no_llm_configured",
+                "low_margin_columns": [
+                    {
+                        "source_column": a.header,
+                        "column_index": a.column_index,
+                        "assigned_target": a.target,
+                        "runner_up": a.runner_up,
+                        "margin": a.margin,
+                    }
+                    for a in low_margin
+                ],
+                "detail": (
+                    f"{len(low_margin)} column(s) scored within {LOW_MARGIN_THRESHOLD} "
+                    "of their runner-up and were eligible for LLM adjudication, but no "
+                    "OPENAI_API_KEY is configured. The deterministic assignments stand "
+                    "and are reported with margin-adjusted confidence; no second "
+                    "opinion was obtained."
+                ),
+            }
+        )
 
     for assignment in assignments:
         outcome = outcomes.get(assignment.column_index)
@@ -353,6 +385,8 @@ def schema_mapping(state: SOVState) -> dict[str, Any]:
         review_required_count=sum(1 for m in mappings if m.flag == "human_review_required"),
         overall_confidence=round(sum(resolved) / len(resolved), 4) if resolved else 0.0,
         semantic_channel_available=sem_channel.is_available(),
+        low_margin_count=len(low_margin),
+        adjudicator_available=client is not None,
         adjudicator_consulted=len(outcomes),
         adjudicator_accepted=sum(
             1 for o in outcomes.values() if o.verification and o.verification.accepted

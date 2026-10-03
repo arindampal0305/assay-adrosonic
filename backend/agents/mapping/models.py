@@ -139,6 +139,13 @@ class MappingBlock(BaseModel):
     review_required_count: int = Field(default=0, ge=0)
     overall_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     semantic_channel_available: bool = True
+    # Columns whose margin fell below LOW_MARGIN_THRESHOLD, i.e. those *eligible*
+    # for adjudication. Reported separately from `adjudicator_consulted` so the two
+    # reasons that count can be zero stay distinguishable: no column was close
+    # enough to need a second opinion, versus columns needed one and did not get it
+    # because no LLM was configured. Those were previously identical in the output.
+    low_margin_count: int = Field(default=0, ge=0)
+    adjudicator_available: bool = False
     adjudicator_consulted: int = Field(default=0, ge=0)
     adjudicator_accepted: int = Field(default=0, ge=0)
     adjudicator_rejected: int = Field(default=0, ge=0)
@@ -159,4 +166,14 @@ class MappingBlock(BaseModel):
             )
         if self.adjudicator_accepted + self.adjudicator_rejected > self.adjudicator_consulted:
             raise ValueError("adjudicator accept+reject exceeds consulted count")
+        if self.adjudicator_consulted > self.low_margin_count:
+            raise ValueError(
+                f"adjudicator_consulted={self.adjudicator_consulted} exceeds "
+                f"low_margin_count={self.low_margin_count}: a column was adjudicated "
+                "without being eligible for it"
+            )
+        if self.adjudicator_consulted and not self.adjudicator_available:
+            raise ValueError(
+                "adjudicator_consulted is non-zero but adjudicator_available is False"
+            )
         return self
