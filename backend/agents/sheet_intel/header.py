@@ -13,12 +13,20 @@ from backend.agents.sheet_intel.cells import (
     normalise,
     vocabulary_matches,
 )
-from backend.agents.sheet_intel.loader import LoadedSheet
+from backend.ingest.loader import LoadedSheet
 
 MAX_HEADER_SCAN = 30
+# Body rows sampled when measuring type consistency. See `type_consistency_below`.
+TYPE_CONSISTENCY_SAMPLE = 400
 COMPOSITE_SEPARATOR = " › "
 MIN_HEADER_SCORE = 0.38
 SUB_HEADER_SPARSITY = 0.6
+
+# Distinct-value share below which a candidate row is rejected outright. A real
+# header names different things in every column; a two-column header is the
+# smallest legitimate case, so this stays well below 0.5 to avoid excluding
+# genuinely repetitive-but-valid headers like 'Bldg / Bldg'.
+MIN_HEADER_UNIQUENESS = 0.25
 
 CANDIDATE_WEIGHTS = {
     "label_density": 0.25,
@@ -48,17 +56,37 @@ def _non_null_indexes(row: list[Any]) -> list[int]:
 def type_consistency_below(
     sheet: LoadedSheet, data_start_row: int, columns: list[int]
 ) -> float:
-    """Mean per-column share of the dominant non-empty cell kind below the header."""
+    """Mean per-column share of the dominant non-empty cell kind below the header.
+
+    Sampled, not exhaustive. This function is called once per candidate header row
+    — up to MAX_HEADER_SCAN times per sheet — and originally scanned the whole body
+    each time. On a 5,549-row x 39-column tab that was 12.5 million `cell_kind`
+    calls and 25 of the 31 seconds the sheet took to score, which is the real reason
+    the loader needed a row ceiling at all.
+
+    What is being measured is a *proportion*: the share of a column that is the
+    dominant type. A few hundred rows pins that down to within a couple of percent,
+    and the factor is weighted 0.20 against four others, so the extra precision from
+    reading every row could never change a classification.
+
+    Strided rather than head-sampled, because the first rows of a schedule are not
+    representative — subtotal blocks, a block of one region, or a run of blanks at
+    the top would all skew a head sample. A stride spans the whole sheet.
+    """
     body = sheet.grid[data_start_row:]
     if not body or not columns:
         return 0.0
 
+    if len(body) > TYPE_CONSISTENCY_SAMPLE:
+        stride = -(-len(body) // TYPE_CONSISTENCY_SAMPLE)  # ceil
+        body = body[::stride]
+
     scores: list[float] = []
     for col in columns:
         kinds = [
-            cell_kind(row[col])
+            kind
             for row in body
-            if col < len(row) and cell_kind(row[col]) != "empty"
+            if col < len(row) and (kind := cell_kind(row[col])) != "empty"
         ]
         if not kinds:
             continue
@@ -74,10 +102,29 @@ def _score_candidate(sheet: LoadedSheet, row_idx: int) -> Optional[dict[str, flo
         return None
 
     values = [row[i] for i in filled]
-    label_density = sum(1 for v in values if looks_like_label(v)) / len(values)
-    fill = len(filled) / sheet.n_cols
     uniqueness = len({normalise(v) for v in values}) / len(values)
-    vocabulary = len(vocabulary_matches(values)) / len(values)
+
+    # A row that is nearly all one repeated string is not a header, whatever else
+    # it scores. This is a disqualifier rather than a weighted term because on a
+    # real SOV it has to beat four other factors that a merged footnote maxes out:
+    # a single sentence spanning 27 merged columns is forward-filled into 27
+    # identical cells, giving label_density 1.00, fill 0.96 and
+    # type_consistency_below 1.00 against a true header row's 0.839. Uniqueness
+    # was the only factor that spotted it, and at weight 0.15 it lost by 0.013.
+    if uniqueness < MIN_HEADER_UNIQUENESS:
+        return None
+
+    # Deduplicate before measuring label-ness and vocabulary, so forward-filled
+    # merged cells contribute one cell's worth of evidence instead of one per
+    # column they happen to span.
+    distinct: dict[str, Any] = {}
+    for value in values:
+        distinct.setdefault(normalise(value), value)
+    unique_values = list(distinct.values())
+
+    label_density = sum(1 for v in unique_values if looks_like_label(v)) / len(unique_values)
+    fill = len(filled) / sheet.n_cols
+    vocabulary = len(vocabulary_matches(unique_values)) / len(unique_values)
     consistency = type_consistency_below(sheet, row_idx + 1, filled)
 
     factors = {

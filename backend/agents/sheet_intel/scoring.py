@@ -10,16 +10,26 @@ from backend.agents.sheet_intel.header import (
     detect_header,
     type_consistency_below,
 )
-from backend.agents.sheet_intel.loader import LoadedSheet
+from backend.ingest.loader import LoadedSheet
 from backend.state.target_schema import TARGET_FIELD_NAMES
 
+# The 0.10 given to `data_scale` was taken from `null_ratio` and `row_continuity`
+# (0.15 each, now 0.10). Both are near-saturated on every real sheet measured —
+# row_continuity was exactly 1.000 on all six tabs of the workbook that motivated
+# the new factor — so they were spending weight without discriminating.
 SHEET_WEIGHTS = {
     "header_density": 0.25,
     "type_consistency": 0.20,
-    "null_ratio": 0.15,
-    "row_continuity": 0.15,
+    "null_ratio": 0.10,
+    "row_continuity": 0.10,
     "vocabulary_overlap": 0.25,
+    "data_scale": 0.10,
 }
+
+# Row count at which `data_scale` saturates. A schedule of values is the sheet
+# that carries the locations, so beyond a few hundred rows more rows stop being
+# evidence of anything.
+DATA_SCALE_SATURATION = 1000
 
 PRIMARY_MIN_SCORE = 0.50
 SECONDARY_MIN_SCORE = 0.40
@@ -64,6 +74,31 @@ def _data_region_quality(sheet: LoadedSheet, data_start_row: int) -> tuple[float
     return null_ratio, continuity, data_rows
 
 
+def _data_scale(data_rows: int) -> float:
+    """How much of a schedule this sheet is actually carrying, log-scaled.
+
+    This factor exists because a real workbook defeated every other one. One file
+    held three tabs with the *same 29 columns* — `23-24 Values` (864 rows), the
+    live schedule; `Deleted Locations` (74); and `Insured Elsewhere` (52), both
+    excluded from the policy. Identical headers means identical header_density and
+    identical vocabulary_overlap, and all three are clean tables, so the four
+    structural factors ranked them 0.804 / 0.794 / 0.776 — putting a 52-row
+    exclusions list ahead of the real SOV by 0.010.
+
+    Nothing about a sheet's *shape* can separate those tabs, because their shape is
+    the same. What separates them is that one of them has the locations in it.
+
+    Log rather than linear so the factor distinguishes 50 rows from 500 without
+    letting a 5,000-row equipment schedule outvote the vocabulary channel, and
+    saturating so two genuinely large schedules are decided on their other merits.
+    """
+    if data_rows <= 0:
+        return 0.0
+    from math import log10
+
+    return round(min(1.0, log10(1 + data_rows) / log10(1 + DATA_SCALE_SATURATION)), 3)
+
+
 def score_sheet(sheet: LoadedSheet) -> SheetScore:
     detection = detect_header(sheet)
     data_start = detection.data_start_row if detection else 0
@@ -86,6 +121,7 @@ def score_sheet(sheet: LoadedSheet) -> SheetScore:
         "null_ratio": round(null_ratio, 3),
         "row_continuity": round(continuity, 3),
         "vocabulary_overlap": round(vocabulary, 3),
+        "data_scale": _data_scale(data_rows),
     }
     score = round(sum(SHEET_WEIGHTS[k] * v for k, v in factors.items()), 3)
 

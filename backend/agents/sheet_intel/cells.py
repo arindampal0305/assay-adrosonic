@@ -18,6 +18,22 @@ _NON_ALNUM = re.compile(r"[^a-z0-9]+")
 CellKind = str
 FUZZY_THRESHOLD = 0.86
 
+# A header cell naming one of the 17 fields is short: 'Zip', 'Bldg Repl Cost',
+# 'Year of Construction'. Beyond this many tokens a cell is prose — a footnote, a
+# disclaimer, an instruction — and must not be allowed to match a field name.
+#
+# Found on a real SOV: a merged footnote reading 'Complex has Close Circuit TV
+# Monitoring system, Each residential room has hard wired smoke detectors...'
+# matched `Reference`, because the subset rule in match_target only required
+# *some* glossary phrase to appear among the cell's tokens and never asked
+# whether that phrase accounted for any meaningful part of the cell.
+MAX_HEADER_CELL_TOKENS = 8
+
+# And when a cell is short enough to be a header, a short glossary phrase still
+# has to account for a real share of it, so the 'no' in 'no smoking in any unit'
+# does not read as `Reference`.
+MIN_SUBSET_COVERAGE = 0.34
+
 
 def cell_kind(value: Any) -> CellKind:
     if value is None:
@@ -73,11 +89,21 @@ def match_target(value: Any) -> str | None:
         return PHRASE_INDEX[text]
 
     cell_tokens = tokens(text)
+    # Prose is not a header cell. Checked before any matching, so a long footnote
+    # cannot reach the subset rule at all.
+    if len(cell_tokens) > MAX_HEADER_CELL_TOKENS:
+        return None
+
     best: tuple[float, str | None] = (0.0, None)
     for phrase, target in PHRASE_INDEX.items():
         phrase_tokens = tokens(phrase)
         if phrase_tokens and phrase_tokens <= cell_tokens:
-            coverage = 0.9 + 0.1 * (len(phrase_tokens) / max(len(cell_tokens), 1))
+            share = len(phrase_tokens) / max(len(cell_tokens), 1)
+            # The phrase must be most of what the cell says, not an incidental
+            # word buried in it.
+            if share < MIN_SUBSET_COVERAGE:
+                continue
+            coverage = 0.9 + 0.1 * share
             if coverage > best[0]:
                 best = (coverage, target)
             continue

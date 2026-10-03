@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.agents.sheet_intel.loader import load_workbook_file
+from backend.ingest.loader import load_workbook_file
 from backend.agents.sheet_intel.scoring import classify_sheets, score_sheet
 from backend.state.gates import contract_gate
-from backend.state.sov_state import SheetManifestEntry, SOVState, SourceInfo
+from backend.state.sov_state import Issue, SheetManifestEntry, SOVState, SourceInfo
 
 
 @contract_gate("sheet_intelligence")
@@ -38,4 +38,11 @@ def sheet_intelligence(state: SOVState) -> dict[str, Any]:
         sheets=len(workbook.sheets),
         file_path=state.source.file_path,
     )
-    return {"source": source, "manifest": manifest}
+
+    # A dropped sheet is a gap in what was analysed, so it is reported as an issue
+    # rather than left to be inferred from a sheet count the reader cannot check.
+    issues = [
+        Issue(rule="sheet_skipped_row_limit", field=name, severity="Medium")
+        for name, _rows in workbook.oversized_sheets
+    ]
+    return {"source": source, "manifest": manifest, "issues": issues}
