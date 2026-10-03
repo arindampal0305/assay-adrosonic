@@ -887,36 +887,47 @@
   </div>
 
   <!-- File Upload / Pipeline Runner Modal -->
-  <div id="uploadModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#FFFDF9] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E5DEC9] relative text-[#0A0A0A]">
-      <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-[#8C7E6A] hover:text-[#0A0A0A] text-lg">✕</button>
+  <!-- File Upload / Pipeline Runner Modal -->
+  <div id="uploadModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 hidden">
+    <div id="uploadModalContainer" class="bg-[#FFFDF9] rounded-2xl max-w-6xl w-full max-h-[92vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-[#E5DEC9] relative text-[#0A0A0A] transition-all duration-300">
+      <button onclick="closeUploadModal()" class="absolute top-5 right-5 text-[#8C7E6A] hover:text-[#0A0A0A] text-xl font-bold p-1 rounded-lg hover:bg-[#F4EFE6] transition">✕</button>
 
-      <h3 class="text-xl font-bold text-[#0A0A0A] mb-1">Run ASSAY Pipeline</h3>
-      <p class="text-sm text-[#57524A] mb-6">Upload an SOV Excel file (.xlsx / .csv) to test the multi-agent cleansing pipeline.</p>
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-9 h-9 bg-[#0A0A0A] rounded-xl flex items-center justify-center text-[#FAF7F2] font-extrabold text-sm shadow-md">A</div>
+        <div>
+          <h3 class="text-2xl font-extrabold text-[#0A0A0A] tracking-tight">ASSAY Execution Workspace</h3>
+          <p class="text-xs text-[#57524A]">Multi-Agent Cleansing Pipeline & Human Underwriter Review</p>
+        </div>
+      </div>
 
-      <form id="uploadForm" onsubmit="handleFileUpload(event)" class="space-y-4">
-        <div class="border-2 border-dashed border-[#E5DEC9] hover:border-[#0A0A0A] rounded-xl p-8 text-center cursor-pointer transition-colors bg-[#FAF7F2]" onclick="document.getElementById('fileInput').click()">
-          <svg class="w-10 h-10 text-[#8C7E6A] mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-          <div class="text-sm font-semibold text-[#0A0A0A]" id="fileNameDisplay">Click or drag & drop file here</div>
-          <div class="text-xs text-[#57524A] mt-1">Supports .xlsx, .csv sample files</div>
+      <form id="uploadForm" onsubmit="handleFileUpload(event)" class="my-4 space-y-4">
+        <div class="border-2 border-dashed border-[#E5DEC9] hover:border-[#0A0A0A] rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-colors bg-[#FAF7F2]" onclick="document.getElementById('fileInput').click()">
+          <svg class="w-12 h-12 text-[#8C7E6A] mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <div class="text-base font-bold text-[#0A0A0A]" id="fileNameDisplay">Click or drag & drop SOV file (.xlsx / .csv) here</div>
+          <div class="text-xs text-[#57524A] mt-1">Supports multi-sheet workbooks, shifted title blocks, and unformatted data</div>
           <input type="file" id="fileInput" class="hidden" accept=".xlsx,.csv" onchange="updateFileName(this)"/>
         </div>
 
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" onclick="closeUploadModal()" class="px-4 py-2 text-sm font-semibold text-[#57524A] hover:bg-[#F4EFE6] rounded-lg">Cancel</button>
-          <button type="submit" id="submitBtn" class="px-5 py-2 text-sm font-semibold text-[#FAF7F2] bg-[#0A0A0A] hover:bg-[#262626] rounded-xl shadow-md flex items-center gap-2">
-            Start Pipeline Run
+        <div class="flex justify-end gap-3 pt-1">
+          <button type="button" onclick="closeUploadModal()" class="px-5 py-2.5 text-sm font-semibold text-[#57524A] hover:bg-[#F4EFE6] rounded-xl border border-[#E5DEC9] transition-all">Cancel</button>
+          <button type="submit" id="submitBtn" class="px-6 py-2.5 text-sm font-extrabold text-[#FAF7F2] bg-[#0A0A0A] hover:bg-[#262626] rounded-xl shadow-md transition-all flex items-center gap-2">
+            <span>Start Pipeline Run</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </div>
       </form>
 
       <!-- Pipeline Execution Output -->
-      <div id="pipelineOutput" class="hidden mt-6 pt-4 border-t border-[#E5DEC9] space-y-3">
-        <div class="flex items-center justify-between text-sm font-bold text-[#0A0A0A]">
-          <span>Execution Output</span>
-          <span id="runIdBadge" class="text-xs font-mono font-normal bg-[#F4EFE6] text-[#0A0A0A] px-2 py-0.5 rounded border border-[#E5DEC9]"></span>
+      <div id="pipelineOutput" class="hidden mt-6 pt-6 border-t border-[#E5DEC9] space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-[#F4EFE6] p-3 sm:p-4 rounded-xl border border-[#E5DEC9]">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-sm font-bold text-[#0A0A0A]">Pipeline Run Output</span>
+          </div>
+          <span id="runIdBadge" class="text-xs font-mono font-bold bg-[#FFFDF9] text-[#0A0A0A] px-3 py-1 rounded-lg border border-[#E5DEC9] shadow-xs"></span>
         </div>
-        <pre id="outputContent" class="bg-[#0A0A0A] text-emerald-400 text-xs p-3 rounded-lg overflow-x-auto max-h-48 font-mono border border-[#262626]"></pre>
+        
+        <div id="outputContent" class="w-full"></div>
       </div>
 
     </div>
@@ -1287,18 +1298,70 @@
       }
     }
 
+    let activeExecutionTab = 'queue';
+    let cachedPreviewData = null;
+
     function setDecision(recId, action) {
+      if (action === 'edit') {
+        toggleInlineEdit(recId);
+        return;
+      }
       currentDecisions[recId] = action;
+      updateDecisionCardUI(recId, action);
+    }
+
+    function toggleInlineEdit(recId) {
+      const editForm = document.getElementById(`edit-form-${recId}`);
+      if (editForm) {
+        editForm.classList.toggle('hidden');
+      }
+    }
+
+    function applyInlineEdit(recId) {
+      const opSelect = document.getElementById(`edit-op-select-${recId}`);
+      const noteInput = document.getElementById(`edit-note-input-${recId}`);
+      const selectedOp = opSelect ? opSelect.value : 'rename';
+      const userNote = noteInput ? noteInput.value : '';
+
+      currentDecisions[recId] = {
+        action: 'edit',
+        edited_op: selectedOp,
+        note: userNote || 'Edited by underwriter'
+      };
+
+      updateDecisionCardUI(recId, 'edit', selectedOp);
+      toggleInlineEdit(recId);
+    }
+
+    function updateDecisionCardUI(recId, action, editedOp = '') {
       const btnAccept = document.getElementById(`btn-accept-${recId}`);
       const btnReject = document.getElementById(`btn-reject-${recId}`);
+      const btnEdit = document.getElementById(`btn-edit-${recId}`);
+      const badgeOp = document.getElementById(`badge-op-${recId}`);
 
-      if (btnAccept && btnReject) {
+      if (btnAccept && btnReject && btnEdit) {
         if (action === 'accept') {
-          btnAccept.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-emerald-600 text-white border-emerald-600';
+          btnAccept.className = 'px-3 py-1 rounded-lg border text-xs font-bold transition bg-emerald-600 text-white border-emerald-600';
           btnReject.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-red-800 border-red-300 hover:bg-red-50';
-        } else {
-          btnReject.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-red-600 text-white border-red-600';
+          btnEdit.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-amber-800 border-amber-300 hover:bg-amber-50';
+        } else if (action === 'reject') {
+          btnReject.className = 'px-3 py-1 rounded-lg border text-xs font-bold transition bg-red-600 text-white border-red-600';
           btnAccept.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50';
+          btnEdit.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-amber-800 border-amber-300 hover:bg-amber-50';
+        } else if (action === 'edit') {
+          btnEdit.className = 'px-3 py-1 rounded-lg border text-xs font-bold transition bg-amber-600 text-white border-amber-600';
+          btnAccept.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50';
+          btnReject.className = 'px-3 py-1 rounded-lg border text-xs font-semibold transition bg-white text-red-800 border-red-300 hover:bg-red-50';
+        }
+      }
+
+      if (badgeOp) {
+        if (action === 'edit') {
+          badgeOp.innerHTML = `<code class="bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-mono font-bold">EDITED: ${editedOp}</code>`;
+        } else if (action === 'reject') {
+          badgeOp.innerHTML = `<code class="bg-red-100 text-red-900 border border-red-300 px-2 py-0.5 rounded font-mono font-bold">REJECTED</code>`;
+        } else {
+          badgeOp.innerHTML = `<code class="bg-[#EFE8DB] px-1.5 py-0.5 rounded font-mono">${editedOp || 'accept'}</code>`;
         }
       }
     }
@@ -1322,9 +1385,19 @@
       const recs = latestRunData.recommendations || [];
       const decisionsList = recs.map((rec, idx) => {
         const recId = rec.id || `R-${idx}`;
+        const userDec = currentDecisions[recId];
+        if (typeof userDec === 'object' && userDec.action === 'edit') {
+          return {
+            rec_id: recId,
+            action: 'edit',
+            note: userDec.note || 'Edited via ASSAY Underwriter Review UI',
+            by: 'underwriter_reviewer',
+            edited_op: userDec.edited_op
+          };
+        }
         return {
           rec_id: recId,
-          action: currentDecisions[recId] || 'accept',
+          action: (typeof userDec === 'string' ? userDec : userDec?.action) || 'accept',
           note: 'Approved via ASSAY Underwriter Review UI',
           by: 'underwriter_reviewer'
         };
@@ -1348,8 +1421,108 @@
       }
     }
 
+    async function switchExecutionTab(tabName) {
+      activeExecutionTab = tabName;
+      const tabQueue = document.getElementById('tab-btn-queue');
+      const tabData = document.getElementById('tab-btn-data');
+      const tabState = document.getElementById('tab-btn-state');
+
+      const contentQueue = document.getElementById('tab-content-queue');
+      const contentData = document.getElementById('tab-content-data');
+      const contentState = document.getElementById('tab-content-state');
+
+      if (!contentQueue || !contentData || !contentState) return;
+
+      contentQueue.classList.add('hidden');
+      contentData.classList.add('hidden');
+      contentState.classList.add('hidden');
+
+      if (tabQueue) tabQueue.className = 'px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6]';
+      if (tabData) tabData.className = 'px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6]';
+      if (tabState) tabState.className = 'px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6]';
+
+      if (tabName === 'queue') {
+        contentQueue.classList.remove('hidden');
+        if (tabQueue) tabQueue.className = 'px-4 py-2 font-bold text-xs rounded-xl border border-[#0A0A0A] bg-[#0A0A0A] text-[#FAF7F2] shadow-sm';
+      } else if (tabName === 'data') {
+        contentData.classList.remove('hidden');
+        if (tabData) tabData.className = 'px-4 py-2 font-bold text-xs rounded-xl border border-[#0A0A0A] bg-[#0A0A0A] text-[#FAF7F2] shadow-sm';
+        if (currentRunId && !cachedPreviewData) {
+          await renderUploadedDataPreview(currentRunId);
+        }
+      } else if (tabName === 'state') {
+        contentState.classList.remove('hidden');
+        if (tabState) tabState.className = 'px-4 py-2 font-bold text-xs rounded-xl border border-[#0A0A0A] bg-[#0A0A0A] text-[#FAF7F2] shadow-sm';
+      }
+    }
+
+    async function renderUploadedDataPreview(runId) {
+      const container = document.getElementById('uploadedDataContainer');
+      if (!container) return;
+      container.innerHTML = '<div class="p-8 text-center text-xs font-mono text-[#8C7E6A] animate-pulse">Loading uploaded file data preview...</div>';
+
+      try {
+        const response = await fetch(`/api/runs/${runId}/preview`);
+        if (!response.ok) {
+          container.innerHTML = `<div class="p-4 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl">Failed to load preview data.</div>`;
+          return;
+        }
+        const data = await response.json();
+        cachedPreviewData = data;
+
+        const headers = data.headers || [];
+        const rows = data.sample_rows || [];
+        const mappings = data.mappings || [];
+        const mapDict = {};
+        mappings.forEach(m => {
+          if (m.source_column) mapDict[m.source_column] = m.target;
+        });
+
+        let tableHtml = `
+          <div class="space-y-4 font-sans text-left">
+            <div class="flex flex-wrap items-center justify-between text-xs text-[#57524A] bg-[#FAF7F2] p-3 rounded-xl border border-[#E5DEC9]">
+              <div><span class="font-bold text-[#0A0A0A]">Sheet Name:</span> ${data.sheet_name || 'Primary'}</div>
+              <div><span class="font-bold text-[#0A0A0A]">Total Rows:</span> ${data.total_rows || rows.length}</div>
+              <div><span class="font-bold text-[#0A0A0A]">Columns Identified:</span> ${headers.length}</div>
+            </div>
+
+            <div class="overflow-x-auto border border-[#E5DEC9] rounded-xl max-h-[440px] shadow-sm bg-[#FFFDF9]">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-[#0A0A0A] text-[#FAF7F2] sticky top-0 z-10">
+                  <tr>
+                    <th class="p-3 font-mono text-[11px] border-b border-[#262626] w-12 text-center text-[#8C7E6A]">#</th>
+                    ${headers.map(h => `
+                      <th class="p-3 font-mono text-xs border-b border-[#262626] whitespace-nowrap min-w-[150px]">
+                        <div>${h}</div>
+                        ${mapDict[h] ? `<span class="inline-block mt-1 text-[10px] font-sans font-bold bg-emerald-700 text-white px-2 py-0.5 rounded">→ ${mapDict[h]}</span>` : `<span class="inline-block mt-1 text-[10px] font-sans font-normal text-slate-400">(Unmapped)</span>`}
+                      </th>
+                    `).join('')}
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E5DEC9] font-mono text-[11px]">
+                  ${rows.map((r, rIdx) => `
+                    <tr class="hover:bg-[#F4EFE6]/60 transition-colors">
+                      <td class="p-2.5 text-center font-bold text-[#8C7E6A] bg-[#FAF7F2]">${rIdx + 1}</td>
+                      ${headers.map(h => `
+                        <td class="p-2.5 whitespace-nowrap text-[#0A0A0A] max-w-xs truncate">${r[h] !== undefined ? r[h] : ''}</td>
+                      `).join('')}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML = tableHtml;
+      } catch (err) {
+        container.innerHTML = `<div class="p-4 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl">Error loading preview: ${err.message}</div>`;
+      }
+    }
+
     function renderPipelineUI(data) {
       currentRunId = data.run_id;
+      cachedPreviewData = null;
       const outputDiv = document.getElementById('pipelineOutput');
       const runIdBadge = document.getElementById('runIdBadge');
       const outputPre = document.getElementById('outputContent');
@@ -1385,19 +1558,34 @@
               </span>
             </div>
           </div>
+
+          <!-- Execution Workspace Tab Bar -->
+          <div class="flex flex-wrap items-center gap-2 border-b border-[#E5DEC9] pb-3">
+            <button onclick="switchExecutionTab('queue')" id="tab-btn-queue" class="px-4 py-2 font-bold text-xs rounded-xl border border-[#0A0A0A] bg-[#0A0A0A] text-[#FAF7F2] shadow-sm flex items-center gap-2">
+              <span>🧑 Review Queue (${recs.length})</span>
+            </button>
+            <button onclick="switchExecutionTab('data')" id="tab-btn-data" class="px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6] flex items-center gap-2">
+              <span>📊 View Uploaded Source Data</span>
+            </button>
+            <button onclick="switchExecutionTab('state')" id="tab-btn-state" class="px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6] flex items-center gap-2">
+              <span>📋 Audit & State JSON</span>
+            </button>
+          </div>
+
+          <!-- Tab 1: Underwriter Review Queue -->
+          <div id="tab-content-queue" class="space-y-4">
       `;
 
       if (status === 'awaiting_review' && recs.length > 0) {
         html += `
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <h3 class="text-base font-bold text-[#0A0A0A]">Human Underwriter Review Queue (LangGraph Interrupt Gate)</h3>
-              <button onclick="approveAllRecs()" class="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-1.5 rounded-lg transition shadow-sm">
-                ✓ Approve All Recommendations
-              </button>
-            </div>
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-[#0A0A0A]">Human Underwriter Review Queue (LangGraph Interrupt Gate)</h3>
+            <button onclick="approveAllRecs()" class="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-1.5 rounded-lg transition shadow-sm">
+              ✓ Approve All Recommendations
+            </button>
+          </div>
 
-            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+          <div class="space-y-4 max-h-[460px] overflow-y-auto pr-2">
         `;
 
         recs.forEach((rec, idx) => {
@@ -1406,7 +1594,7 @@
           const beforeAfter = rec.before_after || [];
 
           html += `
-            <div class="bg-[#FFFDF9] border border-[#E5DEC9] rounded-xl p-4 shadow-sm space-y-3">
+            <div class="bg-[#FFFDF9] border border-[#E5DEC9] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5DEC9] pb-2">
                 <div class="flex items-center gap-2">
                   <span class="bg-[#0A0A0A] text-[#FAF7F2] text-xs font-bold px-2 py-0.5 rounded">${recId}</span>
@@ -1419,8 +1607,8 @@
               <p class="text-xs text-[#57524A] leading-relaxed">${rec.rationale || rec.detail || ''}</p>
 
               ${beforeAfter.length > 0 ? `
-                <div class="bg-[#F4EFE6] p-2.5 rounded-lg text-xs font-mono space-y-1">
-                  <div class="text-[10px] text-[#8C7E6A] font-bold">WORKED EXAMPLE (BEFORE → AFTER):</div>
+                <div class="bg-[#F4EFE6] p-3 rounded-xl text-xs font-mono space-y-1">
+                  <div class="text-[10px] text-[#8C7E6A] font-bold uppercase tracking-wider">WORKED EXAMPLE (BEFORE → AFTER):</div>
                   ${beforeAfter.slice(0, 3).map(ba => `
                     <div class="flex items-center gap-2">
                       <span class="text-red-700 line-through">${ba.before}</span>
@@ -1431,31 +1619,66 @@
                 </div>
               ` : ''}
 
-              <!-- Decision Action Control -->
-              <div class="flex items-center justify-between pt-1">
+              <!-- Decision Action Controls with Edit Option -->
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#E5DEC9]">
                 <div class="flex items-center gap-2 text-xs">
                   <label class="font-bold text-[#0A0A0A]">Decision:</label>
-                  <button onclick="setDecision('${recId}', 'accept')" id="btn-accept-${recId}" class="px-3 py-1 rounded-lg border text-xs font-semibold transition ${currentDecisions[recId] === 'accept' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50'}">
+                  <button onclick="setDecision('${recId}', 'accept')" id="btn-accept-${recId}" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${currentDecisions[recId] === 'accept' ? 'bg-emerald-600 text-white border-emerald-600 font-bold' : 'bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50'}">
                     Accept
                   </button>
-                  <button onclick="setDecision('${recId}', 'reject')" id="btn-reject-${recId}" class="px-3 py-1 rounded-lg border text-xs font-semibold transition ${currentDecisions[recId] === 'reject' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-800 border-red-300 hover:bg-red-50'}">
+                  <button onclick="setDecision('${recId}', 'reject')" id="btn-reject-${recId}" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${currentDecisions[recId] === 'reject' ? 'bg-red-600 text-white border-red-600 font-bold' : 'bg-white text-red-800 border-red-300 hover:bg-red-50'}">
                     Reject
                   </button>
+                  <button onclick="setDecision('${recId}', 'edit')" id="btn-edit-${recId}" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${typeof currentDecisions[recId] === 'object' ? 'bg-amber-600 text-white border-amber-600 font-bold' : 'bg-white text-amber-800 border-amber-300 hover:bg-amber-50'}">
+                    ✏️ Edit
+                  </button>
                 </div>
-                <span class="text-xs text-[#8C7E6A]">Op: <code class="bg-[#EFE8DB] px-1.5 py-0.5 rounded font-mono">${rec.op || 'flag'}</code></span>
+
+                <div id="badge-op-${recId}" class="text-xs">
+                  <span class="text-xs text-[#8C7E6A]">Op: <code class="bg-[#EFE8DB] px-1.5 py-0.5 rounded font-mono">${rec.op || 'flag'}</code></span>
+                </div>
               </div>
+
+              <!-- Inline Edit Form (Hidden by Default) -->
+              <div id="edit-form-${recId}" class="hidden pt-3 border-t border-amber-200 bg-amber-50/70 p-3 rounded-xl space-y-3">
+                <div class="text-xs font-bold text-amber-900">Edit Proposed DSL Transformation Operation:</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label class="block font-semibold text-[#0A0A0A] mb-1">Select DSL Operation:</label>
+                    <select id="edit-op-select-${recId}" class="w-full p-2 rounded-lg bg-white border border-[#E5DEC9] font-mono text-xs text-[#0A0A0A]">
+                      <option value="strip_currency_to_float" ${rec.op === 'strip_currency_to_float' ? 'selected' : ''}>strip_currency_to_float (Strip $ & cast float)</option>
+                      <option value="to_int" ${rec.op === 'to_int' ? 'selected' : ''}>to_int (Cast integer)</option>
+                      <option value="to_float" ${rec.op === 'to_float' ? 'selected' : ''}>to_float (Cast float)</option>
+                      <option value="state_to_abbrev" ${rec.op === 'state_to_abbrev' ? 'selected' : ''}>state_to_abbrev (Format 2-letter state)</option>
+                      <option value="zip5" ${rec.op === 'zip5' ? 'selected' : ''}>zip5 (Format 5-digit zero-padded ZIP)</option>
+                      <option value="set_null" ${rec.op === 'set_null' ? 'selected' : ''}>set_null (Clear value to blank)</option>
+                      <option value="exclude_row" ${rec.op === 'exclude_row' ? 'selected' : ''}>exclude_row (Exclude total/summary row)</option>
+                      <option value="trim_normalise" ${rec.op === 'trim_normalise' ? 'selected' : ''}>trim_normalise (Trim extra spaces)</option>
+                      <option value="rename" ${rec.op === 'rename' ? 'selected' : ''}>rename (Rename column)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-[#0A0A0A] mb-1">Underwriter Audit Note:</label>
+                    <input type="text" id="edit-note-input-${recId}" placeholder="e.g. Underwriter manual override" class="w-full p-2 rounded-lg bg-white border border-[#E5DEC9] text-xs text-[#0A0A0A]" />
+                  </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <button onclick="toggleInlineEdit('${recId}')" class="px-3 py-1 rounded-lg border border-[#E5DEC9] bg-white text-xs font-semibold">Cancel</button>
+                  <button onclick="applyInlineEdit('${recId}')" class="px-4 py-1 rounded-lg bg-amber-700 text-white text-xs font-bold shadow-xs">Apply Edit</button>
+                </div>
+              </div>
+
             </div>
           `;
         });
 
         html += `
-            </div>
-
-            <button onclick="submitReviewDecisions()" id="submitDecisionsBtn" class="w-full bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-extrabold text-base py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-              <span>Approve & Execute Transformation Engine (Agent 4)</span>
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
           </div>
+
+          <button onclick="submitReviewDecisions()" id="submitDecisionsBtn" class="w-full bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-extrabold text-base py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+            <span>Approve & Execute Transformation Engine (Agent 4)</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
         `;
       }
 
@@ -1480,13 +1703,27 @@
         `;
       }
 
-      // Raw JSON accordion
       html += `
-        <details class="pt-4 text-xs">
-          <summary class="cursor-pointer font-bold text-[#8C7E6A] hover:text-[#0A0A0A]">Toggle Raw Pipeline State JSON</summary>
-          <pre class="mt-2 bg-[#141414] text-emerald-400 p-4 rounded-xl overflow-x-auto text-[11px] font-mono leading-relaxed max-h-96">${JSON.stringify(data, null, 2)}</pre>
-        </details>
-      </div>
+          </div>
+
+          <!-- Tab 2: Uploaded Data View -->
+          <div id="tab-content-data" class="hidden">
+            <div id="uploadedDataContainer"></div>
+          </div>
+
+          <!-- Tab 3: Audit & State JSON -->
+          <div id="tab-content-state" class="hidden space-y-4">
+            <div class="bg-[#141414] text-emerald-400 p-4 rounded-xl font-mono text-xs overflow-x-auto border border-[#262626]">
+              <div class="text-[#8C7E6A] font-bold mb-2 text-[10px] uppercase">STATE EXECUTION TRACE:</div>
+              ${(data.trace || []).map(t => `<div>[${t.agent}] ${t.event} (${t.ms}ms)</div>`).join('')}
+            </div>
+
+            <details class="text-xs">
+              <summary class="cursor-pointer font-bold text-[#8C7E6A] hover:text-[#0A0A0A]">Toggle Full State JSON Object</summary>
+              <pre class="mt-2 bg-[#141414] text-emerald-400 p-4 rounded-xl overflow-x-auto text-[11px] font-mono leading-relaxed max-h-96 border border-[#262626]">${JSON.stringify(data, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
       `;
 
       outputPre.innerHTML = html;

@@ -69,6 +69,14 @@ def test_create_run_and_human_review_flow(tmp_path):
         final_data = dec_resp.json()
         assert final_data["status"] == "completed"
 
+        # Test preview data endpoint
+        prev_resp = client.get(f"/api/runs/{run_id}/preview")
+        assert prev_resp.status_code == 200
+        prev_data = prev_resp.json()
+        assert "headers" in prev_data
+        assert "sample_rows" in prev_data
+        assert len(prev_data["sample_rows"]) > 0
+
         # Test download links
         sov_dl = client.get(f"/api/runs/{run_id}/download/sov")
         assert sov_dl.status_code == 200

@@ -159,6 +159,55 @@ async def submit_decisions(run_id: str, payload: DecisionsPayload = Body(...)):
     return _serialize_state(state, is_interrupted=is_interrupted)
 
 
+@app.get("/api/runs/{run_id}/preview")
+async def get_run_data_preview(run_id: str):
+    """Fetch raw uploaded file rows and sheet preview for the data viewer."""
+    config = {"configurable": {"thread_id": run_id}}
+    state_snapshot = COMPILED_GRAPH.get_state(config)
+
+    state = None
+    if state_snapshot and state_snapshot.values:
+        val = state_snapshot.values
+        state = val if isinstance(val, SOVState) else SOVState.model_validate(val)
+    elif run_id in RUN_STATES:
+        state = RUN_STATES[run_id]
+
+    if not state or not state.source.file_path:
+        raise HTTPException(status_code=404, detail=f"Preview data for run '{run_id}' not found.")
+
+    file_path = Path(state.source.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Source file no longer exists on disk.")
+
+    primary = state.primary_sheet()
+    sheet_name = primary.sheet if primary else None
+    header_row = primary.header_row if primary else 0
+
+    try:
+        if file_path.suffix.lower() == ".csv":
+            df = pd.read_csv(file_path, header=header_row if header_row is not None else 0)
+        else:
+            df = pd.read_excel(file_path, sheet_name=sheet_name or 0, header=header_row if header_row is not None else 0)
+
+        df = df.fillna("")
+        headers = [str(c) for c in df.columns]
+        sample_rows = df.head(100).to_dict(orient="records")
+        total_rows = len(df)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to parse preview data: {exc}")
+
+    mappings_list = state.mapping.get("mapping", {}).get("mappings", [])
+
+    return {
+        "run_id": run_id,
+        "sheet_name": sheet_name,
+        "total_rows": total_rows,
+        "headers": headers,
+        "sample_rows": sample_rows,
+        "mappings": mappings_list,
+    }
+
+
 @app.get("/api/runs/{run_id}/stream")
 async def stream_run_trace(run_id: str):
     """Server-Sent Events (SSE) endpoint streaming execution trace and status."""
