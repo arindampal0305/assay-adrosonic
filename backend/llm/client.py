@@ -18,6 +18,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol, runtime_checkable
 
@@ -28,6 +30,15 @@ DEFAULT_TIMEOUT_SECONDS = float(os.getenv("ASSAY_LLM_TIMEOUT", "20"))
 # One retry only. A column mapping is not worth a long retry storm, and the
 # fused-evidence answer is already a usable fallback.
 MAX_ATTEMPTS = 2
+
+DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
+# Ollama needs its own model setting rather than sharing `ASSAY_LLM_MODEL`. That
+# variable's default is an OpenAI model name, and `.env.example` suggests
+# `gpt-4o` for it, so reusing it would post `gpt-4o` to a local daemon and fail
+# for a reason that reads like a bug rather than a misconfiguration.
+DEFAULT_OLLAMA_MODEL = "llama3.1"
+# Short on purpose: this probe runs during `get_client()`, on the request path.
+OLLAMA_PROBE_TIMEOUT = float(os.getenv("ASSAY_OLLAMA_PROBE_TIMEOUT", "2"))
 
 
 class LLMUnavailable(RuntimeError):
@@ -107,19 +118,159 @@ class OpenAIClient:
         raise LLMUnavailable(f"LLM unreachable after {MAX_ATTEMPTS} attempts: {last_error}")
 
 
+class OllamaClient:
+    """Thin Ollama adapter. Local, keyless, and close enough to the same shape.
+
+    Uses stdlib `urllib` rather than `httpx` or `requests`. `httpx` is present in
+    this environment only as a transitive dependency of `openai`, and relying on
+    transitive presence is exactly what left `.env` unread for a milestone (see
+    `backend/__init__.py`). One JSON POST and one GET are not worth either a new
+    declared dependency or a repeat of that.
+    """
+
+    def __init__(
+        self,
+        base_url: str = DEFAULT_OLLAMA_BASE_URL,
+        model: str = DEFAULT_OLLAMA_MODEL,
+        *,
+        probe: bool = True,
+    ) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        if probe:
+            self._probe()
+
+    def _probe(self) -> None:
+        """Refuse construction unless the daemon answers and has the model.
+
+        A configured-but-unreachable Ollama must collapse to `get_client() -> None`
+        rather than to a client that raises once per low-margin column. Raising
+        `LLMUnavailable` here reuses the fallback `get_client` already has, instead
+        of introducing a second, parallel notion of "degraded".
+        """
+        try:
+            with urllib.request.urlopen(
+                f"{self.base_url}/api/tags", timeout=OLLAMA_PROBE_TIMEOUT
+            ) as response:
+                tags = json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, OSError, ValueError) as exc:
+            raise LLMUnavailable(
+                f"no Ollama daemon answering at {self.base_url} ({exc})"
+            ) from exc
+
+        installed = [str(m.get("name", "")) for m in tags.get("models", [])]
+        # Ollama reports tagged names, so `llama3.1` and `llama3.1:latest` are the
+        # same model. Compare on the bare name as well as the exact string.
+        if installed and not any(
+            name == self.model or name.split(":")[0] == self.model.split(":")[0]
+            for name in installed
+        ):
+            raise LLMUnavailable(
+                f"Ollama at {self.base_url} has no model '{self.model}' "
+                f"(installed: {', '.join(sorted(installed))}). "
+                f"Run `ollama pull {self.model}`."
+            )
+
+    def complete_json(self, *, system: str, user: str) -> LLMResponse:
+        body = json.dumps(
+            {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "stream": False,
+                # Ollama's JSON mode, the counterpart of OpenAI's
+                # response_format={"type": "json_object"}. Without it a local model
+                # tends to wrap the object in prose and `as_json` has to salvage it.
+                "format": "json",
+                "options": {"temperature": 0},
+            }
+        ).encode("utf-8")
+
+        last_error: Optional[Exception] = None
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            request = urllib.request.Request(
+                f"{self.base_url}/api/chat",
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(
+                    request, timeout=DEFAULT_TIMEOUT_SECONDS
+                ) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+            except (urllib.error.URLError, OSError, ValueError) as exc:
+                last_error = exc
+                logger.warning(
+                    "Ollama attempt %d/%d failed: %s", attempt, MAX_ATTEMPTS, exc
+                )
+                continue
+            return LLMResponse(
+                text=(payload.get("message") or {}).get("content") or "",
+                model=str(payload.get("model") or self.model),
+                prompt_tokens=payload.get("prompt_eval_count"),
+                completion_tokens=payload.get("eval_count"),
+            )
+        raise LLMUnavailable(
+            f"Ollama unreachable after {MAX_ATTEMPTS} attempts: {last_error}"
+        )
+
+
 def get_client() -> Optional[LLMClient]:
-    """The configured client, or None when no key is set.
+    """The configured client, or None when no provider is usable.
+
+    Precedence, which is a decision rather than an accident:
+
+      1. `OPENAI_API_KEY` non-empty        -> OpenAI
+      2. `ASSAY_LLM_PROVIDER=ollama`       -> Ollama at `OLLAMA_BASE_URL`
+      3. anything else                     -> None
 
     None is not a failure. Agent 2 resolves every column from fused evidence
     whether or not adjudication is available; adjudication only re-decides
-    low-margin cases.
+    low-margin cases, and `schema_mapping` reports the skip as an
+    `adjudicator_unavailable` issue plus an audit record naming the columns that
+    went unadjudicated.
+
+    Every variable is read here rather than at module import, for two reasons: a
+    `.env` loaded by `backend/__init__` must be visible, and a test must be able
+    to select a provider with `monkeypatch.setenv` without reimporting the module.
     """
     api_key = (os.getenv("OPENAI_API_KEY") or "").strip()
-    if not api_key:
-        logger.info("no OPENAI_API_KEY configured; adjudication disabled")
-        return None
-    try:
-        return OpenAIClient(api_key=api_key)
-    except LLMUnavailable as exc:
-        logger.warning("LLM client could not be constructed: %s", exc)
-        return None
+    provider = (os.getenv("ASSAY_LLM_PROVIDER") or "").strip().lower()
+
+    if api_key:
+        if provider == "ollama":
+            # Asking for Ollama and silently getting OpenAI — and a bill — is the
+            # one case in this function worth a warning rather than an info line.
+            logger.warning(
+                "ASSAY_LLM_PROVIDER=ollama but OPENAI_API_KEY is set, so OpenAI "
+                "takes precedence. Unset OPENAI_API_KEY to use Ollama."
+            )
+        try:
+            return OpenAIClient(api_key=api_key)
+        except LLMUnavailable as exc:
+            logger.warning("OpenAI client could not be constructed: %s", exc)
+            return None
+
+    if provider == "ollama":
+        base_url = (os.getenv("OLLAMA_BASE_URL") or "").strip() or DEFAULT_OLLAMA_BASE_URL
+        model = (os.getenv("ASSAY_OLLAMA_MODEL") or "").strip() or DEFAULT_OLLAMA_MODEL
+        try:
+            client = OllamaClient(base_url=base_url, model=model)
+        except LLMUnavailable as exc:
+            logger.warning("Ollama client could not be constructed: %s", exc)
+            return None
+        logger.info("adjudication via Ollama model '%s' at %s", model, base_url)
+        return client
+
+    if provider and provider != "openai":
+        logger.warning(
+            "unknown ASSAY_LLM_PROVIDER '%s'; expected 'openai' or 'ollama'. "
+            "Adjudication disabled.",
+            provider,
+        )
+    else:
+        logger.info("no LLM provider configured; adjudication disabled")
+    return None
