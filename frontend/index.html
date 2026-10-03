@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ASSAY | SOV Cleansing & Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#0f172a',
+            },
+            assayDark: '#0B132B',
+            assayCard: '#1C2541',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            handwritten: ['Caveat', 'cursive'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .handwritten-arrow {
+      font-family: 'Caveat', cursive;
+    }
+    .shadow-soft {
+      box-shadow: 0 20px 40px -15px rgba(37, 99, 235, 0.07), 0 0 15px rgba(0, 0, 0, 0.03);
+    }
+    /* Dynamic canvas overlay */
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Top scroll progress indicator bar */
+    #scrollProgressBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #2563eb, #3b82f6, #10b981);
+      width: 0%;
+      z-index: 100;
+      transition: width 0.1s ease-out;
+    }
+    /* Smooth Keyframe Animations for Initial Page Load */
+    @keyframes navSlideDown {
+      0% { opacity: 0; transform: translateY(-25px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes heroFadeUp {
+      0% { opacity: 0; transform: translateY(35px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes heroScaleUp {
+      0% { opacity: 0; transform: perspective(1000px) rotateX(12deg) scale(0.92); }
+      100% { opacity: 1; transform: perspective(1000px) rotateX(0deg) scale(1); }
+    }
+
+    .page-load-nav {
+      animation: navSlideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .page-load-hero-left {
+      animation: heroFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .page-load-hero-right {
+      animation: heroScaleUp 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    }
+
+    /* Scroll animation reveal */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(40px) scale(0.97);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    /* Dynamic Parallax Card Transform Container */
+    .hero-parallax-card {
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+      will-change: transform;
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
+
+  <!-- Top Scroll Progress Line -->
+  <div id="scrollProgressBar"></div>
+
+  <!-- Interactive Background Canvas for Particles -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- Header / Navigation (Smooth Page Load Animation) -->
+  <header class="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/80 page-load-nav">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-4">
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="font-extrabold text-2xl tracking-tight text-slate-900">ASSAY</span>
+        </a>
+        <span class="text-slate-300 font-light text-lg">|</span>
+        <span class="text-slate-500 font-medium text-xs sm:text-sm hidden sm:inline-block">SOV Cleansing & Intelligence</span>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
+        <a href="#home" class="text-brand-600 font-semibold border-b-2 border-brand-600 pb-1">Home</a>
+        <a href="#features" class="hover:text-brand-600 transition-colors">Features</a>
+        <a href="#how-it-works" class="hover:text-brand-600 transition-colors">How It Works</a>
+        <a href="#schema" class="hover:text-brand-600 transition-colors">Target Schema</a>
+        <a href="#comparison" class="hover:text-brand-600 transition-colors">Benchmark</a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        <button onclick="openSignInModal()" class="text-slate-700 hover:text-slate-900 font-semibold text-sm px-4 py-2 rounded-xl border border-slate-200/90 hover:border-slate-300 transition-all bg-white/90 shadow-sm hover:bg-slate-50">
+          Sign In
+        </button>
+        <button onclick="openUploadModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-md shadow-brand-600/25 flex items-center gap-2 hover:-translate-y-0.5">
+          Execute Pipeline
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="home" class="relative z-10">
+    
+    <!-- Hero Section -->
+    <section class="relative pt-12 pb-20 overflow-hidden bg-gradient-to-b from-white/90 via-slate-50/40 to-[#F8FAFC]">
+      <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16">
+          
+          <!-- Left Hero Text (Smooth Page Load Animation) -->
+          <div class="lg:col-span-6 space-y-6 page-load-hero-left">
+            
+            <!-- Super Professional Category Header (Crisp accent bar, no rectangular box/slugish border) -->
+            <div class="flex items-center gap-3 text-brand-600 font-extrabold text-xs tracking-widest uppercase">
+              <span class="w-7 h-0.5 bg-brand-600 rounded-full"></span>
+              <span>PROPERTY & CASUALTY INSURANCE</span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+              From messy SOVs to clean, trusted data, <span class="text-brand-600">ASSAY</span> does the heavy lifting.
+            </h1>
+
+            <p class="text-slate-600 text-lg leading-relaxed max-w-xl">
+              The first multi-agent system built for SOV cleansing, combining AI-powered reasoning with deterministic code and human oversight. Accurate. Explainable. Audit-ready.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4 pt-2">
+              <button onclick="openUploadModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold text-base px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-brand-600/30 flex items-center gap-2 hover:-translate-y-0.5">
+                Execute Pipeline
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              
+              <button onclick="openDemoModal()" class="bg-white hover:bg-slate-50 text-slate-700 font-semibold text-base px-6 py-3.5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all shadow-sm flex items-center gap-2.5 hover:-translate-y-0.5">
+                <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
+                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                Watch Demo
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Right Hero Visual Graphic (Smooth 3D Scale Load & Scroll Parallax) -->
+          <div class="lg:col-span-6 relative pt-6 page-load-hero-right">
+            
+            <div id="heroCardWrapper" class="relative w-full max-w-2xl mx-auto hero-parallax-card">
+              
+              <!-- 1. "Messy input" Callout + Excel Card (Top Left) -->
+              <div class="absolute -top-9 -left-6 z-20 hidden sm:flex flex-col items-center">
+                <span class="font-sans text-[11px] font-extrabold tracking-wider uppercase text-amber-800 bg-amber-50/95 border border-amber-200/90 px-2.5 py-1 rounded-md shadow-xs mb-1">Messy input</span>
+                <svg class="w-10 h-8 text-amber-500 transform -rotate-12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+
+              <div class="absolute top-2 -left-4 z-10 bg-white rounded-xl shadow-xl border border-slate-200/80 p-3 w-56 sm:w-64 transform -rotate-3 hover:rotate-0 transition-transform">
+                <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100 text-xs font-semibold text-slate-600">
+                  <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/></svg>
+                  <span>Client_SOV_May.xlsx</span>
+                </div>
+                <div class="text-[10px] space-y-1 font-mono text-slate-600">
+                  <div class="grid grid-cols-4 font-bold bg-slate-100 p-1 rounded">
+                    <span>Property</span><span>Building</span><span>Contents</span><span>BI</span>
+                  </div>
+                  <div class="grid grid-cols-4 p-1 border-b border-slate-100">
+                    <span class="truncate">123 Main</span><span>$1.25M</span><span>$780k</span><span>$450k</span>
+                  </div>
+                  <div class="grid grid-cols-4 p-1 border-b border-slate-100">
+                    <span class="truncate">456 Oak</span><span>$250k</span><span>$101k</span><span>$900k</span>
+                  </div>
+                  <div class="grid grid-cols-4 p-1 font-semibold text-slate-900 bg-slate-50">
+                    <span>Total</span><span>$5.00M</span><span>$1.48M</span><span>$640k</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Main Center UI Dark Mockup Card (ASSAY App Overlay) -->
+              <div class="bg-[#0B132B] rounded-2xl shadow-2xl border border-slate-800 text-slate-100 overflow-hidden ml-12 sm:ml-16">
+                <!-- App Header Bar -->
+                <div class="bg-[#1C2541]/90 px-4 py-3 border-b border-slate-800/80 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="flex gap-1.5">
+                      <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                      <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                    </div>
+                    <div class="h-4 w-px bg-slate-700 mx-1"></div>
+                    <div class="flex items-center gap-2">
+                      <div class="w-5 h-5 bg-brand-600 rounded flex items-center justify-center text-white text-[10px] font-bold">A</div>
+                      <span class="text-xs font-bold tracking-wide">ASSAY</span>
+                    </div>
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-medium">SOV Cleansing Pipeline</div>
+                </div>
+
+                <div class="grid grid-cols-12 min-h-[260px]">
+                  <!-- Sidebar -->
+                  <div class="col-span-4 bg-[#0F172A] p-3 border-r border-slate-800 text-xs space-y-1.5">
+                    <div class="flex items-center gap-2 p-1.5 rounded-lg bg-brand-600/20 text-brand-400 font-semibold">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                      <span>Home</span>
+                    </div>
+                    <div class="flex items-center gap-2 p-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                      <span>New Upload</span>
+                    </div>
+                    <div class="flex items-center gap-2 p-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                      <span>Files</span>
+                    </div>
+                    <div class="flex items-center gap-2 p-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      <span>Review</span>
+                    </div>
+                    <div class="flex items-center gap-2 p-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      <span>Audit Log</span>
+                    </div>
+                  </div>
+
+                  <!-- Main View Pane -->
+                  <div class="col-span-8 p-4 bg-[#0B132B] flex flex-col justify-between">
+                    <div>
+                      <!-- Horizontal Step Badges -->
+                      <div class="flex items-center justify-between text-[9px] font-semibold text-slate-400 mb-4 pb-2 border-b border-slate-800">
+                        <span class="text-brand-400 flex items-center gap-1"><span class="w-4 h-4 rounded-full bg-brand-600 text-white flex items-center justify-center text-[8px]">1</span> Sheet Discovery</span>
+                        <span class="opacity-50">2. Schema</span>
+                        <span class="opacity-50">3. Quality</span>
+                        <span class="opacity-50">4. Review</span>
+                      </div>
+
+                      <div class="text-xs font-bold text-slate-200 mb-1">Processing Your File</div>
+                      <div class="text-[10px] text-slate-400 mb-2">Stage 1 of 5</div>
+
+                      <!-- Progress bar -->
+                      <div class="w-full bg-slate-800 rounded-full h-2 mb-4 overflow-hidden">
+                        <div class="bg-brand-500 h-2 rounded-full w-1/5 animate-pulse"></div>
+                      </div>
+
+                      <!-- Checklist -->
+                      <div class="space-y-2 text-[11px]">
+                        <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-emerald-500/20 text-slate-200">
+                          <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[9px] font-extrabold">✓</span>
+                            Sheet Discovery
+                          </span>
+                          <span class="text-[9px] font-bold text-emerald-400 uppercase">Completed</span>
+                        </div>
+                        <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/30 text-slate-400">
+                          <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full border border-slate-600 inline-block"></span>
+                            Schema Mapping
+                          </span>
+                          <span class="text-[9px] text-slate-500">Pending</span>
+                        </div>
+                        <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/30 text-slate-400">
+                          <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full border border-slate-600 inline-block"></span>
+                            Data Quality & Reasoning
+                          </span>
+                          <span class="text-[9px] text-slate-500">Pending</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- 3. "Clean output" Callout + Green Badge Card (Bottom Right) -->
+              <div class="absolute -bottom-6 -right-4 z-20 bg-white rounded-xl shadow-xl border border-emerald-100 p-3.5 flex items-center gap-3 transform rotate-2 hover:rotate-0 transition-transform">
+                <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <div class="font-bold text-xs text-slate-900">Cleaned SOV.xlsx</div>
+                  <div class="text-[10px] font-medium text-emerald-600">+ Audit Log.xlsx</div>
+                </div>
+              </div>
+
+              <div class="absolute -top-10 -right-6 z-20 hidden sm:flex flex-col items-center">
+                <span class="font-sans text-[11px] font-extrabold tracking-wider uppercase text-emerald-800 bg-emerald-50/95 border border-emerald-200/90 px-2.5 py-1 rounded-md shadow-xs mb-1">Clean output</span>
+                <svg class="w-10 h-8 text-emerald-600 transform rotate-12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7-7-7" />
+                </svg>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Value Propositions Section (4 Cards Grid) -->
+    <section id="features" class="py-16 bg-white border-y border-slate-200/60 relative">
+      <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-on-scroll">
+          
+          <!-- Card 1: Zero Hallucination -->
+          <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-soft hover:border-brand-300 hover:shadow-lg transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-2">Zero Hallucination Guarantee</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Data is never edited without explicit human approval. Nulls stay null.
+            </p>
+          </div>
+
+          <!-- Card 2: Complete Explainability -->
+          <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-soft hover:border-brand-300 hover:shadow-lg transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-2">Complete Explainability</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Every mapping and recommendation includes plain-English rationale.
+            </p>
+          </div>
+
+          <!-- Card 3: Faster Processing -->
+          <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-soft hover:border-brand-300 hover:shadow-lg transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-2">Faster Processing</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              From hours to under 60 seconds per file.
+            </p>
+          </div>
+
+          <!-- Card 4: Higher Accuracy -->
+          <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-soft hover:border-brand-300 hover:shadow-lg transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-2">Higher Accuracy</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Header-mapping accuracy from 53% to &ge;74% (&ge;85% with team harness).
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- How It Works Section (5 Step Flow) -->
+    <section id="how-it-works" class="py-20 bg-[#F8FAFC]">
+      <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-6 reveal-on-scroll">
+          <div class="max-w-2xl space-y-3">
+            <div class="flex items-center gap-2 text-brand-600 font-extrabold text-xs tracking-widest uppercase">
+              <span class="w-6 h-0.5 bg-brand-600 rounded-full"></span>
+              <span>HOW IT WORKS</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              A 4-Agent Pipeline, Built for Accuracy
+            </h2>
+            <p class="text-slate-600 text-base leading-relaxed">
+              ASSAY uses LangGraph to orchestrate 4 specialized AI agents, with human approval at the center and deterministic code for every change.
+            </p>
+          </div>
+
+          <div>
+            <button onclick="openUploadModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all shadow-md flex items-center gap-2 whitespace-nowrap hover:-translate-y-0.5">
+              Explore the Process
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5 Horizontal Flow Step Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 relative reveal-on-scroll">
+          
+          <!-- Step 1 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm relative flex flex-col justify-between hover:border-brand-300 hover:shadow-md transition-all">
+            <div>
+              <div class="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm mb-4 shadow-md shadow-blue-500/20">
+                1
+              </div>
+              <h4 class="font-bold text-slate-900 text-sm mb-1.5">Sheet Intelligence</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Finds the right sheet, header and structure.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm relative flex flex-col justify-between hover:border-emerald-300 hover:shadow-md transition-all">
+            <div>
+              <div class="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm mb-4 shadow-md shadow-emerald-500/20">
+                2
+              </div>
+              <h4 class="font-bold text-slate-900 text-sm mb-1.5">Schema Mapping</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Maps to 17 target fields using 3-channel scoring + global solver.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm relative flex flex-col justify-between hover:border-purple-300 hover:shadow-md transition-all">
+            <div>
+              <div class="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-sm mb-4 shadow-md shadow-purple-600/20">
+                3
+              </div>
+              <h4 class="font-bold text-slate-900 text-sm mb-1.5">Data Quality & Reasoning</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Detects issues and proposes fixes with plain-English rationale.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="bg-white rounded-2xl p-5 border border-amber-200/90 bg-amber-50/20 shadow-sm relative flex flex-col justify-between hover:border-amber-300 hover:shadow-md transition-all">
+            <div>
+              <div class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm mb-4 shadow-md shadow-amber-500/20">
+                4
+              </div>
+              <h4 class="font-bold text-slate-900 text-sm mb-1.5">Human Review</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                You approve, edit or reject with full context and before/after view.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-sm relative flex flex-col justify-between hover:border-teal-300 hover:shadow-md transition-all">
+            <div>
+              <div class="w-9 h-9 rounded-full bg-teal-500 text-white flex items-center justify-center font-bold text-sm mb-4 shadow-md shadow-teal-500/20">
+                5
+              </div>
+              <h4 class="font-bold text-slate-900 text-sm mb-1.5">Controlled Transformation</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Runs approved changes via deterministic code and creates audit logs.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Standardized 17 P&C Target Schema Coverage -->
+    <section id="schema" class="py-20 bg-white border-t border-slate-200/60">
+      <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="text-center max-w-3xl mx-auto mb-16 space-y-4 reveal-on-scroll">
+          <div class="inline-flex items-center gap-2 text-brand-600 font-extrabold text-xs tracking-widest uppercase">
+            <span class="w-6 h-0.5 bg-brand-600 rounded-full"></span>
+            <span>TARGET SCHEMA INTEL</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            17 Standardized P&C Insurance Fields Supported
+          </h2>
+          <p class="text-slate-600 text-base leading-relaxed">
+            Our 3-channel scoring solver maps unstandardized raw headers across property values, location metadata, and building risk attributes with 85%+ accuracy.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 reveal-on-scroll">
+          
+          <!-- Category 1: Property Values -->
+          <div class="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/80 space-y-4 hover:border-brand-300 transition-all">
+            <div class="flex items-center gap-3 text-brand-600">
+              <div class="w-9 h-9 rounded-lg bg-brand-100 flex items-center justify-center font-bold text-brand-700">
+                $
+              </div>
+              <h3 class="font-bold text-slate-900 text-lg">Property Values</h3>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-700">
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Building Replacement Cost</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Numeric</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Business Personal Property</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Numeric</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Business Interruption / EE</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Numeric</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Other Property Value</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Numeric</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Category 2: Location Identifiers -->
+          <div class="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/80 space-y-4 hover:border-brand-300 transition-all">
+            <div class="flex items-center gap-3 text-brand-600">
+              <div class="w-9 h-9 rounded-lg bg-brand-100 flex items-center justify-center font-bold text-brand-700">
+                📍
+              </div>
+              <h3 class="font-bold text-slate-900 text-lg">Location Metadata</h3>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-700">
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Location Number / ID</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Text / ID</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Street Address</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Address</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">City, State, Zip & County</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Geo Data</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Category 3: Construction & Risk Attributes -->
+          <div class="bg-slate-50/80 rounded-2xl p-6 border border-slate-200/80 space-y-4 hover:border-brand-300 transition-all">
+            <div class="flex items-center gap-3 text-brand-600">
+              <div class="w-9 h-9 rounded-lg bg-brand-100 flex items-center justify-center font-bold text-brand-700">
+                🏢
+              </div>
+              <h3 class="font-bold text-slate-900 text-lg">Risk & Attributes</h3>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-700">
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Occupancy Description</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Category</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Construction Code / Type</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">ISO Code</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded bg-white border border-slate-100 shadow-2xs">
+                <span class="font-mono font-medium text-xs text-slate-800">Year Built, Stories, Sprinklers</span>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Attributes</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Benchmark Comparison -->
+    <section id="comparison" class="py-20 bg-[#F8FAFC] border-t border-slate-200/60">
+      <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="max-w-3xl mx-auto text-center mb-16 space-y-3 reveal-on-scroll">
+          <div class="inline-flex items-center gap-2 text-emerald-600 font-extrabold text-xs tracking-widest uppercase">
+            <span class="w-6 h-0.5 bg-emerald-600 rounded-full"></span>
+            <span>PERFORMANCE BENCHMARK</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Manual Cleansing vs. ASSAY Automation
+          </h2>
+          <p class="text-slate-600 text-base">
+            See how ASSAY transforms commercial underwriter productivity while preserving audit confidence.
+          </p>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200/80 shadow-soft overflow-hidden reveal-on-scroll">
+          <table class="w-full text-left text-sm text-slate-700">
+            <thead class="bg-slate-900 text-white text-xs uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="p-4 sm:p-5">Metric / Feature</th>
+                <th class="p-4 sm:p-5 text-rose-300">Manual Underwriter Process</th>
+                <th class="p-4 sm:p-5 text-emerald-400 bg-slate-800">ASSAY Multi-Agent System</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-medium text-slate-900">Processing Speed per File</td>
+                <td class="p-4 text-slate-500">4 to 6 Hours per SOV</td>
+                <td class="p-4 font-bold text-emerald-600 bg-emerald-50/30">&lt; 60 Seconds per SOV</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-medium text-slate-900">Header Mapping Accuracy</td>
+                <td class="p-4 text-slate-500">53% (Standard regex scripts)</td>
+                <td class="p-4 font-bold text-emerald-600 bg-emerald-50/30">&ge;74% (&ge;85% with team harness)</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-medium text-slate-900">Hallucination & AI Risk</td>
+                <td class="p-4 text-slate-500">High Risk with raw LLMs</td>
+                <td class="p-4 font-bold text-emerald-600 bg-emerald-50/30">Zero Hallucination Guarantee</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-medium text-slate-900">Audit Trail & Traceability</td>
+                <td class="p-4 text-slate-500">None (Manual copy-paste)</td>
+                <td class="p-4 font-bold text-emerald-600 bg-emerald-50/30">Full Rationale + Audit Log Export</td>
+              </tr>
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-medium text-slate-900">Multi-Sheet & Title Block Support</td>
+                <td class="p-4 text-slate-500">Tedious manual inspection</td>
+                <td class="p-4 font-bold text-emerald-600 bg-emerald-50/30">Automatic Header & Title Detection</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Ultra-Sleek Hackathon & Team Credits -->
+  <footer class="bg-slate-950 text-slate-400 py-16 border-t border-slate-900 relative z-10">
+    <div class="max-w-7xl mx-auto px-6 space-y-12">
+      
+      <!-- Top Row -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-10 border-b border-slate-900">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-brand-600/30">A</div>
+          <div>
+            <span class="text-white font-extrabold text-xl tracking-tight">ASSAY</span>
+            <span class="text-slate-500 text-sm ml-2 font-medium">| SOV Cleansing & Intelligence</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-5 text-xs text-slate-400">
+          <a href="#home" class="hover:text-white transition-colors">Home</a>
+          <span class="text-slate-700">•</span>
+          <a href="#features" class="hover:text-white transition-colors">Features</a>
+          <span class="text-slate-700">•</span>
+          <a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a>
+          <span class="text-slate-700">•</span>
+          <a href="#schema" class="hover:text-white transition-colors">Target Schema</a>
+        </div>
+      </div>
+
+      <!-- Hackathon & Team Banner Card (Ultra-Sleek Glassmorphic Dark Container) -->
+      <div class="bg-[#0B132B]/90 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-slate-800/80 shadow-2xl space-y-6">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+          <div class="space-y-1">
+            <div class="text-xs uppercase font-extrabold tracking-widest text-brand-400">Hackathon Project Submission</div>
+            <div class="text-sm text-slate-200 font-medium">
+              Developed during <strong class="text-white font-bold">Adrogenic Build Hackathon 2026</strong> <span class="text-slate-400 font-normal">| (Problem Statement: 03)</span>
+            </div>
+          </div>
+
+          <div class="text-xs font-bold text-slate-200 bg-slate-900/90 px-3.5 py-2 rounded-xl border border-slate-700/70 shadow-sm">
+            Team Name: <span class="text-emerald-400 font-extrabold">Hacksmiths</span>
+          </div>
+        </div>
+
+        <!-- Team Members List -->
+        <div>
+          <div class="text-xs uppercase font-bold text-slate-400 mb-3 tracking-wider">Team Members & Authors</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-[#0F172A] p-3.5 rounded-xl border border-slate-800/90 flex items-center gap-3 hover:border-brand-500/50 hover:bg-slate-900 transition-all group">
+              <div class="w-8 h-8 rounded-full bg-brand-600/20 text-brand-400 font-extrabold text-xs flex items-center justify-center border border-brand-500/30 group-hover:scale-105 transition-transform">AP</div>
+              <span class="text-xs font-semibold text-slate-200">Arindam Pal</span>
+            </div>
+            <div class="bg-[#0F172A] p-3.5 rounded-xl border border-slate-800/90 flex items-center gap-3 hover:border-emerald-500/50 hover:bg-slate-900 transition-all group">
+              <div class="w-8 h-8 rounded-full bg-emerald-600/20 text-emerald-400 font-extrabold text-xs flex items-center justify-center border border-emerald-500/30 group-hover:scale-105 transition-transform">SK</div>
+              <span class="text-xs font-semibold text-slate-200">Sujal Kumar</span>
+            </div>
+            <div class="bg-[#0F172A] p-3.5 rounded-xl border border-slate-800/90 flex items-center gap-3 hover:border-purple-500/50 hover:bg-slate-900 transition-all group">
+              <div class="w-8 h-8 rounded-full bg-purple-600/20 text-purple-400 font-extrabold text-xs flex items-center justify-center border border-purple-500/30 group-hover:scale-105 transition-transform">ST</div>
+              <span class="text-xs font-semibold text-slate-200">Sneha Tiwari</span>
+            </div>
+            <div class="bg-[#0F172A] p-3.5 rounded-xl border border-slate-800/90 flex items-center gap-3 hover:border-amber-500/50 hover:bg-slate-900 transition-all group">
+              <div class="w-8 h-8 rounded-full bg-amber-600/20 text-amber-400 font-extrabold text-xs flex items-center justify-center border border-amber-500/30 group-hover:scale-105 transition-transform">AU</div>
+              <span class="text-xs font-semibold text-slate-200">Anuj Upadhayay</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="text-center text-xs text-slate-600 pt-2">
+        &copy; 2026 ASSAY. All rights reserved. Multi-agent P&C Property SOV Cleansing Engine.
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Sign In Modal -->
+  <div id="signInModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative">
+      <button onclick="closeSignInModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">✕</button>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center text-white font-extrabold text-sm shadow-md">A</div>
+        <div>
+          <h3 class="text-xl font-bold text-slate-900">Sign In to ASSAY</h3>
+          <p class="text-xs text-slate-500">Access your SOV Cleansing workspace</p>
+        </div>
+      </div>
+
+      <form id="signInForm" onsubmit="handleSignInSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input type="email" required placeholder="underwriter@insurance.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition-all" />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-semibold text-slate-700">Password</label>
+            <a href="#" onclick="alert('Password reset link sent to your email.'); return false;" class="text-xs font-semibold text-brand-600 hover:text-brand-700">Forgot password?</a>
+          </div>
+          <input type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm outline-none transition-all" />
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500" checked />
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <button type="submit" id="signInBtn" class="w-full py-3 px-4 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+          Sign In
+        </button>
+
+        <div class="relative my-4">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+          <div class="relative flex justify-center text-xs text-slate-400 uppercase"><span class="bg-white px-2">Or continue with</span></div>
+        </div>
+
+        <button type="button" onclick="handleSSOSignIn()" class="w-full py-2.5 px-4 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457-.315-2.84-.877-4.088"/></svg>
+          Enterprise Single Sign-On (SSO)
+        </button>
+
+      </form>
+      
+      <div id="signInNotice" class="hidden mt-4 p-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs text-center font-medium">
+        ✓ Sign in successful! Redirecting to workspace...
+      </div>
+    </div>
+  </div>
+
+  <!-- File Upload / Pipeline Runner Modal -->
+  <div id="uploadModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative">
+      <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">✕</button>
+
+      <h3 class="text-xl font-bold text-slate-900 mb-1">Run ASSAY Pipeline</h3>
+      <p class="text-sm text-slate-500 mb-6">Upload an SOV Excel file (.xlsx / .csv) to test the multi-agent cleansing pipeline.</p>
+
+      <form id="uploadForm" onsubmit="handleFileUpload(event)" class="space-y-4">
+        <div class="border-2 border-dashed border-slate-200 hover:border-brand-500 rounded-xl p-8 text-center cursor-pointer transition-colors bg-slate-50/50" onclick="document.getElementById('fileInput').click()">
+          <svg class="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <div class="text-sm font-semibold text-slate-700" id="fileNameDisplay">Click or drag & drop file here</div>
+          <div class="text-xs text-slate-400 mt-1">Supports .xlsx, .csv sample files</div>
+          <input type="file" id="fileInput" class="hidden" accept=".xlsx,.csv" onchange="updateFileName(this)"/>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" onclick="closeUploadModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          <button type="submit" id="submitBtn" class="px-5 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md flex items-center gap-2">
+            Start Pipeline Run
+          </button>
+        </div>
+      </form>
+
+      <!-- Pipeline Execution Output -->
+      <div id="pipelineOutput" class="hidden mt-6 pt-4 border-t border-slate-100 space-y-3">
+        <div class="flex items-center justify-between text-sm font-bold text-slate-800">
+          <span>Execution Output</span>
+          <span id="runIdBadge" class="text-xs font-mono font-normal bg-brand-50 text-brand-600 px-2 py-0.5 rounded"></span>
+        </div>
+        <pre id="outputContent" class="bg-slate-900 text-emerald-400 text-xs p-3 rounded-lg overflow-x-auto max-h-48 font-mono"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JavaScript for Interactive Canvas Particles, 3D Scroll Tilt & Modal Handlers -->
+  <script>
+    // 1. Particle Canvas Engine with Scroll Acceleration
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    let scrollSpeed = 0;
+    let lastScrollY = window.scrollY;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.baseVx = (Math.random() - 0.5) * 0.5;
+        this.baseVy = (Math.random() - 0.5) * 0.5;
+        this.vx = this.baseVx;
+        this.vy = this.baseVy;
+        this.radius = Math.random() * 2.2 + 1;
+        this.alpha = Math.random() * 0.35 + 0.15;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy + scrollSpeed * 0.08;
+        
+        this.vy += (this.baseVy - this.vy) * 0.05;
+
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(37, 99, 235, ${this.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 50; i++) {
+      particles.push(new Particle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(59, 130, 246, ${0.18 * (1 - dist / 130)})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+      
+      scrollSpeed *= 0.92;
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // 2. Scroll Progress Bar & Dynamic 3D Hero Parallax Tilt
+    const progressBar = document.getElementById('scrollProgressBar');
+    const heroCard = document.getElementById('heroCardWrapper');
+
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.scrollY;
+      scrollSpeed = currentScroll - lastScrollY;
+      lastScrollY = currentScroll;
+
+      const totalDocHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progressPercent = totalDocHeight > 0 ? (currentScroll / totalDocHeight) * 100 : 0;
+      progressBar.style.width = progressPercent + '%';
+
+      if (heroCard && currentScroll < 800) {
+        const tiltFactor = Math.min(currentScroll / 800, 1);
+        const rotateX = 12 * (1 - tiltFactor);
+        const scale = 0.95 + 0.05 * tiltFactor;
+        heroCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) scale(${scale})`;
+      }
+    });
+
+    // 3. Scroll Reveal Observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+
+    // 4. Sign In & Upload Modal Handlers
+    function openSignInModal() {
+      document.getElementById('signInModal').classList.remove('hidden');
+    }
+    function closeSignInModal() {
+      document.getElementById('signInModal').classList.add('hidden');
+    }
+    function openUploadModal() {
+      document.getElementById('uploadModal').classList.remove('hidden');
+    }
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.add('hidden');
+    }
+    function openDemoModal() {
+      openUploadModal();
+    }
+    function handleSignInSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('signInBtn');
+      const notice = document.getElementById('signInNotice');
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        notice.classList.remove('hidden');
+        setTimeout(() => {
+          notice.classList.add('hidden');
+          closeSignInModal();
+          openUploadModal();
+        }, 1200);
+      }, 700);
+    }
+    function handleSSOSignIn() {
+      alert('Enterprise Single Sign-On (SSO) selected. Redirecting to corporate SSO portal...');
+    }
+    function updateFileName(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('fileNameDisplay').textContent = input.files[0].name;
+      }
+    }
+    async function handleFileUpload(e) {
+      e.preventDefault();
+      const input = document.getElementById('fileInput');
+      if (!input.files || !input.files[0]) {
+        alert("Please select an SOV file first.");
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      const outputDiv = document.getElementById('pipelineOutput');
+      const outputPre = document.getElementById('outputContent');
+      const runIdBadge = document.getElementById('runIdBadge');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing Pipeline...';
+
+      const formData = new FormData();
+      formData.append('file', input.files[0]);
+
+      try {
+        const response = await fetch('/api/runs', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        
+        outputDiv.classList.remove('hidden');
+        if (response.ok) {
+          runIdBadge.textContent = 'Run ID: ' + (data.run_id || 'N/A');
+          outputPre.textContent = JSON.stringify(data, null, 2);
+        } else {
+          runIdBadge.textContent = 'Error';
+          outputPre.textContent = JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        outputDiv.classList.remove('hidden');
+        runIdBadge.textContent = 'Network Error';
+        outputPre.textContent = 'Failed to communicate with ASSAY server: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Start Pipeline Run';
+      }
+    }
+  </script>
+
+</body>
+</html>

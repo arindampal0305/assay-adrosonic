@@ -7,14 +7,37 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.agents.sheet_intel.loader import IngestError
 from backend.graph import run_pipeline
 from backend.state.gates import ContractViolation
 
 UPLOAD_DIR = Path(os.getenv("ASSAY_UPLOAD_DIR", "data/uploads"))
+FRONTEND_DIR = Path("frontend")
 
 app = FastAPI(title="ASSAY", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+@app.get("/", response_class=FileResponse)
+async def serve_index():
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    raise HTTPException(status_code=404, detail="Frontend index.html not found.")
+
 
 
 @app.post("/api/runs")
