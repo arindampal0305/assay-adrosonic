@@ -43,6 +43,16 @@ if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
+@app.on_event("startup")
+async def startup_event() -> None:
+    """Pre-load local embedding model during server startup so file uploads run instantly."""
+    try:
+        from backend.agents.mapping.channels import semantic
+        semantic.is_available()
+    except Exception:
+        pass
+
+
 class DecisionItem(BaseModel):
     rec_id: str
     action: str  # accept | reject | edit
