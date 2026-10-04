@@ -183,13 +183,13 @@ async def get_run_data_preview(run_id: str):
 
     primary = state.primary_sheet()
     sheet_name = primary.sheet if primary else None
-    header_row = primary.header_row if primary else 0
+    header_row = primary.header_row if (primary and primary.header_row is not None) else 0
 
     try:
         if file_path.suffix.lower() == ".csv":
-            df = pd.read_csv(file_path, header=header_row if header_row is not None else 0)
+            df = pd.read_csv(file_path, header=header_row)
         else:
-            df = pd.read_excel(file_path, sheet_name=sheet_name or 0, header=header_row if header_row is not None else 0)
+            df = pd.read_excel(file_path, sheet_name=sheet_name or 0, header=header_row)
 
         df = df.fillna("")
         headers = [str(c) for c in df.columns]
