@@ -10,8 +10,14 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-import chromadb
-from chromadb.config import Settings
+try:
+    import chromadb
+    from chromadb.config import Settings
+    HAS_CHROMADB = True
+except ImportError:
+    chromadb = None
+    Settings = None
+    HAS_CHROMADB = False
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +28,19 @@ class MemoryStore:
     def __init__(self, db_dir: Path | str = CHROMA_PATH) -> None:
         self.db_dir = Path(db_dir)
         self.db_dir.mkdir(parents=True, exist_ok=True)
-        self.client = chromadb.PersistentClient(
-            path=str(self.db_dir),
-            settings=Settings(anonymized_telemetry=False),
-        )
-        self.collection = self.client.get_or_create_collection(
-            name="sov_mapping_memory",
-            metadata={"description": "Approved and rejected SOV column mappings"},
-        )
+        if HAS_CHROMADB:
+            self.client = chromadb.PersistentClient(
+                path=str(self.db_dir),
+                settings=Settings(anonymized_telemetry=False),
+            )
+            self.collection = self.client.get_or_create_collection(
+                name="sov_mapping_memory",
+                metadata={"description": "Approved and rejected SOV column mappings"},
+            )
+        else:
+            self.client = None
+            self.collection = None
+            logger.warning("chromadb is not installed. Vector memory store operating in fallback no-op mode.")
 
     def record_decision(
         self,
@@ -41,6 +52,9 @@ class MemoryStore:
     ) -> str:
         """Store a human decision into vector memory."""
         doc_id = f"{'pos' if approved else 'neg'}_{source_column.lower()}_{target_field}_{hash(source_column + target_field)}"
+        if not HAS_CHROMADB or self.collection is None:
+            return doc_id
+
         doc_text = f"Source Header: '{source_column}' -> Target Field: '{target_field}' ({'Approved' if approved else 'Rejected'})"
 
         metadata = {
@@ -60,6 +74,8 @@ class MemoryStore:
 
     def query_similar(self, header: str, limit: int = 5) -> list[dict[str, Any]]:
         """Find past approved/rejected mapping decisions similar to header."""
+        if not HAS_CHROMADB or self.collection is None:
+            return []
         results = self.collection.query(
             query_texts=[header],
             n_results=min(limit, self.collection.count() or 1),

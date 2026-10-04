@@ -23,3 +23,6 @@ pytest>=8.0
 # `name=` — is what carries a rule id through to `failure_cases`. Both were
 # established by running it, and both would change silently across a major bump.
 pandera>=0.33,<0.34
+
+# Milestone 4 — Agent 4 & ChromaDB Memory
+chromadb>=0.4.0
