@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, AsyncGenerator, Optional
 
+import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
@@ -202,7 +203,10 @@ async def get_run_data_preview(run_id: str):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to parse preview data: {exc}")
 
-    mappings_list = state.mapping.get("mappings", []) or state.mapping.get("mapping", {}).get("mappings", [])
+    mapping_dict = state.mapping.model_dump() if hasattr(state.mapping, "model_dump") else (state.mapping if isinstance(state.mapping, dict) else {})
+    mappings_list = mapping_dict.get("mappings", []) or mapping_dict.get("mapping", {}).get("mappings", [])
+    if not mappings_list and isinstance(mapping_dict.get("mappings"), list):
+        mappings_list = mapping_dict["mappings"]
 
     return {
         "run_id": run_id,

@@ -152,7 +152,8 @@ def run_harness() -> bool:
         state = state_dict if isinstance(state_dict, SOVState) else SOVState.model_validate(state_dict)
 
         # Evaluate Mapping
-        mappings_list = state.mapping.get("mappings", [])
+        mapping_dict = state.mapping.model_dump() if hasattr(state.mapping, "model_dump") else (state.mapping if isinstance(state.mapping, dict) else {})
+        mappings_list = mapping_dict.get("mappings", []) or mapping_dict.get("mapping", {}).get("mappings", [])
         predicted_map = {
             m.get("source_column"): m.get("target")
             for m in mappings_list if isinstance(m, dict)
