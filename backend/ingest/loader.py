@@ -13,6 +13,7 @@ import hashlib
 import zipfile
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
 
@@ -137,7 +138,7 @@ def _apply_merges(rows: list[list[Any]], spans: list[MergedSpan]) -> None:
 
 def _load_xlsx(path: Path) -> list[LoadedSheet]:
     try:
-        workbook = openpyxl.load_workbook(path, data_only=True, read_only=False)
+        workbook = openpyxl.load_workbook(path, data_only=True, read_only=False, keep_links=False)
     except zipfile.BadZipFile as exc:
         raise IngestError(
             "This .xlsx file could not be opened. It is either corrupt or "
@@ -182,6 +183,7 @@ def _load_csv(path: Path, sheet_name: str) -> list[LoadedSheet]:
     return [LoadedSheet(name=sheet_name, grid=_trim_grid(raw))]
 
 
+@lru_cache(maxsize=32)
 def load_workbook_file(path: Path | str, file_name: Optional[str] = None) -> LoadedWorkbook:
     path = Path(path)
     display_name = file_name or path.name

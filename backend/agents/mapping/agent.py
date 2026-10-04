@@ -15,6 +15,7 @@ FR-MAP-11 (vector memory of past mappings) is intentionally out of scope here.
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from typing import Any, Optional
 
@@ -244,11 +245,14 @@ def schema_mapping(state: SOVState) -> dict[str, Any]:
     audit: list[dict[str, Any]] = []
     issues: list[Issue] = []
 
-    if client is not None:
-        for assignment in low_margin:
-            outcomes[assignment.column_index] = adjudicate(
-                client, assignment, columns[assignment.column_index]
-            )
+    if client is not None and low_margin:
+        with ThreadPoolExecutor(max_workers=min(len(low_margin), 8)) as executor:
+            future_to_col = {
+                executor.submit(adjudicate, client, a, columns[a.column_index]): a.column_index
+                for a in low_margin
+            }
+            for future, col_idx in future_to_col.items():
+                outcomes[col_idx] = future.result()
     elif low_margin:
         # Skipping adjudication is a legitimate degraded mode, but it was previously
         # recorded only as a log line. That made it invisible in the run output: a

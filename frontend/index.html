@@ -143,10 +143,10 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-3">
-        <button onclick="openSignInModal()" class="text-[#0A0A0A] hover:text-black font-semibold text-sm px-4 py-2 rounded-xl border border-[#E5DEC9] transition-all bg-[#FFFDF9] shadow-sm hover:bg-[#F4EFE6]">
+        <button onclick="openSignInModal()" class="text-[#0A0A0A] hover:text-black font-semibold text-sm px-4 py-2 rounded-lg border border-[#E5DEC9] transition-all bg-[#FFFDF9] shadow-xs hover:bg-[#F4EFE6]">
           Sign In
         </button>
-        <button onclick="openUploadModal()" class="bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-md shadow-black/10 flex items-center gap-2 hover:-translate-y-0.5">
+        <button onclick="openUploadModal()" class="bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-semibold text-sm px-5 py-2.5 rounded-lg transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5">
           Execute Pipeline
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
@@ -188,13 +188,13 @@
             </p>
 
             <div class="flex flex-wrap items-center gap-4 pt-2">
-              <button onclick="openUploadModal()" class="bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-semibold text-base px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-black/10 flex items-center gap-2 hover:-translate-y-0.5">
+              <button onclick="openUploadModal()" class="bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-semibold text-base px-6 py-3.5 rounded-lg transition-all shadow-md flex items-center gap-2 hover:-translate-y-0.5">
                 Execute Pipeline
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
               
-              <button onclick="openDemoModal()" class="bg-[#FFFDF9] hover:bg-[#F4EFE6] text-[#0A0A0A] font-semibold text-base px-6 py-3.5 rounded-xl border border-[#E5DEC9] transition-all shadow-sm flex items-center gap-2.5 hover:-translate-y-0.5">
-                <div class="w-6 h-6 rounded-full bg-[#EFE8DB] flex items-center justify-center text-[#0A0A0A]">
+              <button onclick="openDemoModal()" class="bg-[#FFFDF9] hover:bg-[#F4EFE6] text-[#0A0A0A] font-semibold text-base px-6 py-3.5 rounded-lg border border-[#E5DEC9] transition-all shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5">
+                <div class="w-6 h-6 rounded-md bg-[#EFE8DB] flex items-center justify-center text-[#0A0A0A]">
                   <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
                 Watch Demo
@@ -286,7 +286,7 @@
                     <div>
                       <!-- Horizontal Step Badges -->
                       <div class="flex items-center justify-between text-[9px] font-semibold text-slate-400 mb-4 pb-2 border-b border-[#262422]">
-                        <span class="text-emerald-400 flex items-center gap-1"><span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[8px]">1</span> Sheet Discovery</span>
+                        <span class="text-emerald-400 flex items-center gap-1"><span class="w-4 h-4 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[8px]">1</span> Sheet Discovery</span>
                         <span class="opacity-50">2. Schema</span>
                         <span class="opacity-50">3. Quality</span>
                         <span class="opacity-50">4. Review</span>
@@ -296,29 +296,29 @@
                       <div class="text-[10px] text-slate-400 mb-2">Stage 1 of 5</div>
 
                       <!-- Progress bar -->
-                      <div class="w-full bg-[#262422] rounded-full h-2 mb-4 overflow-hidden">
-                        <div class="bg-emerald-500 h-2 rounded-full w-1/5 animate-pulse"></div>
+                      <div class="w-full bg-[#262422] rounded-md h-2 mb-4 overflow-hidden">
+                        <div class="bg-emerald-500 h-2 rounded-md w-1/5 animate-pulse"></div>
                       </div>
 
                       <!-- Checklist -->
                       <div class="space-y-2 text-[11px]">
                         <div class="flex items-center justify-between p-1.5 rounded bg-[#1C1917] border border-emerald-500/20 text-slate-200">
                           <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[9px] font-extrabold">✓</span>
+                            <span class="w-3.5 h-3.5 rounded-md bg-emerald-500 text-slate-950 flex items-center justify-center text-[9px] font-extrabold">✓</span>
                             Sheet Discovery
                           </span>
                           <span class="text-[9px] font-bold text-emerald-400 uppercase">Completed</span>
                         </div>
                         <div class="flex items-center justify-between p-1.5 rounded bg-[#1C1917]/50 text-slate-400">
                           <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded-full border border-slate-600 inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded-md border border-slate-600 inline-block"></span>
                             Schema Mapping
                           </span>
                           <span class="text-[9px] text-slate-500">Pending</span>
                         </div>
                         <div class="flex items-center justify-between p-1.5 rounded bg-[#1C1917]/50 text-slate-400">
                           <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded-full border border-slate-600 inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded-md border border-slate-600 inline-block"></span>
                             Data Quality & Reasoning
                           </span>
                           <span class="text-[9px] text-slate-500">Pending</span>
@@ -332,7 +332,7 @@
 
               <!-- 3. "Clean output" Callout + Green Badge Card (Bottom Right) -->
               <div class="absolute -bottom-6 -right-4 z-20 bg-[#FFFDF9] rounded-xl shadow-2xl border border-[#E5DEC9] p-3.5 flex items-center gap-3 transform rotate-2 hover:rotate-0 transition-transform">
-                <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 border border-emerald-200">
+                <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 border border-emerald-200">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <div>
@@ -917,6 +917,114 @@
         </div>
       </form>
 
+      <!-- Real-Time Pipeline Execution Progress Slider & Loading Bar -->
+      <div id="pipelineProgressContainer" class="hidden mt-6 pt-6 border-t border-[#E5DEC9] space-y-6">
+        
+        <!-- Header Status & Time Counter Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-[#FAF7F2] p-4 rounded-2xl border border-[#E5DEC9] shadow-sm">
+          <div class="flex items-center gap-3">
+            <span class="relative flex h-3.5 w-3.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+            </span>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-extrabold text-[#0A0A0A]" id="progressStatusLabel">Executing Pipeline Agents</span>
+                <span class="text-[10px] font-mono font-bold bg-[#0A0A0A] text-[#FAF7F2] px-2 py-0.5 rounded" id="progressModeBadge">LIVE RUN</span>
+              </div>
+              <p class="text-xs text-[#57524A]" id="progressSubtext">Processing spreadsheet through multi-agent LangGraph workflow</p>
+            </div>
+          </div>
+
+          <!-- Timer & Estimated Time Remaining Display -->
+          <div class="flex items-center gap-3 text-xs">
+            <div class="bg-[#FFFDF9] border border-[#E5DEC9] px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-xs">
+              <svg class="w-3.5 h-3.5 text-[#8C7E6A]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="text-[#57524A] font-medium">Elapsed:</span>
+              <span id="progressElapsedTime" class="font-mono font-bold text-[#0A0A0A]">00:00s</span>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-xs">
+              <svg class="w-3.5 h-3.5 text-emerald-600 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12a8 8 0 018-8v8H4z"/></svg>
+              <span class="text-emerald-900 font-medium">Est. Left:</span>
+              <span id="progressEstTimeLeft" class="font-mono font-extrabold text-emerald-700">~00:06s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Progress Slider / Loading Bar -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-[#0A0A0A] flex items-center gap-2" id="activeStageLabel">
+              <span class="w-2.5 h-2.5 rounded-md bg-emerald-500 animate-pulse"></span>
+              <span>Stage 1/4: Sheet Intelligence & Ingestion</span>
+            </span>
+            <span id="progressPercentageText" class="font-mono text-base font-black text-[#0A0A0A]">0%</span>
+          </div>
+
+          <!-- Outer Slider Track -->
+          <div class="w-full bg-[#EFE8DB] h-3.5 rounded-lg overflow-hidden border border-[#E5DEC9] p-0.5 relative shadow-inner">
+            <!-- Inner Animated Fill Bar -->
+            <div id="progressBarFill" class="bg-gradient-to-r from-[#0A0A0A] via-[#57524A] to-emerald-600 h-full rounded-md transition-all duration-300 relative shadow-sm" style="width: 0%;">
+              <div class="absolute right-0 top-0 bottom-0 w-3 bg-white/40 animate-pulse rounded-r-md shadow-md"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Stage Checklist Cards Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <!-- Step 1 Card -->
+          <div id="stepCard1" class="p-3 rounded-xl bg-[#FFFDF9] border-2 border-[#0A0A0A] shadow-xs space-y-1 transition-all">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-mono font-bold text-[#0A0A0A]">01. Sheet Intel</span>
+              <span id="stepBadge1" class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">RUNNING</span>
+            </div>
+            <p class="text-[10px] text-[#57524A] line-clamp-1">Parsing title block & headers</p>
+          </div>
+
+          <!-- Step 2 Card -->
+          <div id="stepCard2" class="p-3 rounded-xl bg-[#FFFDF9] border border-[#E5DEC9] space-y-1 transition-all opacity-60">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-mono font-bold text-[#0A0A0A]">02. Schema Map</span>
+              <span id="stepBadge2" class="text-[9px] font-bold text-[#8C7E6A] bg-[#EFE8DB] px-1.5 py-0.5 rounded">PENDING</span>
+            </div>
+            <p class="text-[10px] text-[#57524A] line-clamp-1">3-Channel scoring solver</p>
+          </div>
+
+          <!-- Step 3 Card -->
+          <div id="stepCard3" class="p-3 rounded-xl bg-[#FFFDF9] border border-[#E5DEC9] space-y-1 transition-all opacity-60">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-mono font-bold text-[#0A0A0A]">03. Quality Engine</span>
+              <span id="stepBadge3" class="text-[9px] font-bold text-[#8C7E6A] bg-[#EFE8DB] px-1.5 py-0.5 rounded">PENDING</span>
+            </div>
+            <p class="text-[10px] text-[#57524A] line-clamp-1">0-Hallucination rules</p>
+          </div>
+
+          <!-- Step 4 Card -->
+          <div id="stepCard4" class="p-3 rounded-xl bg-[#FFFDF9] border border-[#E5DEC9] space-y-1 transition-all opacity-60">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-mono font-bold text-[#0A0A0A]">04. Review Gate</span>
+              <span id="stepBadge4" class="text-[9px] font-bold text-[#8C7E6A] bg-[#EFE8DB] px-1.5 py-0.5 rounded">PENDING</span>
+            </div>
+            <p class="text-[10px] text-[#57524A] line-clamp-1">Underwriter queue ready</p>
+          </div>
+        </div>
+
+        <!-- Collapsible Live Log Window -->
+        <details class="group bg-[#0A0A0A] rounded-xl border border-[#262626] overflow-hidden text-xs">
+          <summary class="flex items-center justify-between p-3 text-[#FAF7F2] font-mono font-bold cursor-pointer hover:bg-[#1A1A1A] transition">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z"/></svg>
+              <span>Live Pipeline Execution Log</span>
+            </div>
+            <span class="text-[10px] text-[#8C7E6A] group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div id="progressConsoleLog" class="p-4 font-mono text-[11px] text-emerald-400 space-y-1.5 max-h-40 overflow-y-auto bg-[#0F0E0D] border-t border-[#262626] leading-relaxed">
+            <div>[00:00.0s] 🚀 Pipeline execution initiated...</div>
+          </div>
+        </details>
+
+      </div>
+
       <!-- Pipeline Execution Output -->
       <div id="pipelineOutput" class="hidden mt-6 pt-6 border-t border-[#E5DEC9] space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 bg-[#F4EFE6] p-3 sm:p-4 rounded-xl border border-[#E5DEC9]">
@@ -1254,6 +1362,187 @@
     let currentRunId = null;
     let currentDecisions = {};
     let latestRunData = null;
+    let progressInterval = null;
+    let progressStartTime = 0;
+    let microLogStep = 0;
+
+    const microLogs = [
+      { t: 800, stage: 1, label: "Stage 1/4: Sheet Intelligence & Ingestion", log: "Parsing multi-tab workbook & isolating property data tables..." },
+      { t: 1800, stage: 1, label: "Stage 1/4: Sheet Intelligence & Ingestion", log: "Bypassing title blocks & detecting header row candidate offsets..." },
+      { t: 3000, stage: 2, label: "Stage 2/4: 3-Channel Schema Mapping Engine", log: "Running Lexical Glossary matcher across source columns..." },
+      { t: 4500, stage: 2, label: "Stage 2/4: 3-Channel Schema Mapping Engine", log: "Computing Semantic Vector Embeddings & Regex distance matrix..." },
+      { t: 6200, stage: 2, label: "Stage 2/4: 3-Channel Schema Mapping Engine", log: "Solving global one-to-one header assignment constraint solver..." },
+      { t: 7800, stage: 3, label: "Stage 3/4: Data Quality & Reasoning Engine", log: "Evaluating 18 zero-hallucination domain rules & cell shapes..." },
+      { t: 9500, stage: 3, label: "Stage 3/4: Data Quality & Reasoning Engine", log: "Validating ISO state codes, ZIP formats & occupancy descriptions..." },
+      { t: 11200, stage: 3, label: "Stage 3/4: Data Quality & Reasoning Engine", log: "Reconciling building value limits & total insured values..." },
+      { t: 13000, stage: 4, label: "Stage 4/4: Preparing Underwriter Review Queue", log: "Constructing Human-in-the-Loop review payload & side-by-side diff..." },
+      { t: 15000, stage: 4, label: "Stage 4/4: Preparing Underwriter Review Queue", log: "Finalizing LangGraph checkpoint state & audit trail..." }
+    ];
+
+    function startPipelineProgressTracker(fileName) {
+      const container = document.getElementById('pipelineProgressContainer');
+      const fillBar = document.getElementById('progressBarFill');
+      const textPct = document.getElementById('progressPercentageText');
+      const elapsedEl = document.getElementById('progressElapsedTime');
+      const estLeftEl = document.getElementById('progressEstTimeLeft');
+      const consoleLog = document.getElementById('progressConsoleLog');
+      const outputDiv = document.getElementById('pipelineOutput');
+
+      if (!container) return;
+
+      container.classList.remove('hidden');
+      if (outputDiv) outputDiv.classList.add('hidden');
+
+      fillBar.className = "bg-gradient-to-r from-[#0A0A0A] via-[#57524A] to-emerald-600 h-full rounded-md transition-all duration-200 relative shadow-sm";
+      fillBar.style.width = '3%';
+      textPct.textContent = '3%';
+      elapsedEl.textContent = '00:00.0s';
+      estLeftEl.textContent = '~00:05s left';
+      if (consoleLog) {
+        consoleLog.innerHTML = `<div>[00:00.0s] 🚀 Pipeline execution initiated for: "${fileName || 'Uploaded SOV Workbook'}"...</div>`;
+      }
+
+      resetStepCards();
+      microLogStep = 0;
+      progressStartTime = Date.now();
+      if (progressInterval) clearInterval(progressInterval);
+
+      let currentPct = 3;
+
+      progressInterval = setInterval(() => {
+        const elapsedMs = Date.now() - progressStartTime;
+        const elapsedSec = (elapsedMs / 1000).toFixed(1);
+        const formatSec = (s) => (s < 10 ? '0' + s : s);
+
+        const wholeSec = Math.floor(elapsedMs / 1000);
+        const tenthSec = Math.floor((elapsedMs % 1000) / 100);
+        elapsedEl.textContent = `00:${formatSec(wholeSec)}.${tenthSec}s`;
+
+        // Asymptotic continuous progress curve: P(t) = 99.2 * (1 - exp(-t / 5.5))
+        const targetPct = Math.min(99.2, 99.2 * (1 - Math.exp(-elapsedMs / 5500)));
+        currentPct += (targetPct - currentPct) * 0.3;
+        const roundedPct = Math.min(99, Math.max(3, Math.round(currentPct)));
+
+        fillBar.style.width = roundedPct + '%';
+        textPct.textContent = roundedPct + '%';
+
+        // Update estimated time left dynamically based on current rate
+        const estSecLeft = Math.max(1, Math.ceil((100 - roundedPct) * 0.12));
+        estLeftEl.textContent = `~00:${formatSec(estSecLeft)}s left`;
+
+        // Stream micro-logs as time passes
+        while (microLogStep < microLogs.length && elapsedMs >= microLogs[microLogStep].t) {
+          const item = microLogs[microLogStep];
+          updateStageUI(item.stage, item.label, item.log);
+          microLogStep++;
+        }
+      }, 100);
+    }
+
+    function addProgressLog(msg) {
+      const consoleLog = document.getElementById('progressConsoleLog');
+      if (!consoleLog) return;
+      const elapsedMs = progressStartTime ? Date.now() - progressStartTime : 0;
+      const sec = (elapsedMs / 1000).toFixed(1);
+      const line = document.createElement('div');
+      line.textContent = `[00:${sec < 10 ? '0' + sec : sec}s] ${msg}`;
+      consoleLog.appendChild(line);
+      consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+
+    function updateStageUI(stageNum, labelText, logMsg) {
+      const labelEl = document.getElementById('activeStageLabel');
+      if (labelEl && labelEl.dataset.currentStage != stageNum) {
+        labelEl.dataset.currentStage = stageNum;
+        labelEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span><span>${labelText}</span>`;
+        if (logMsg) addProgressLog(logMsg);
+
+        for (let i = 1; i <= 4; i++) {
+          const card = document.getElementById(`stepCard${i}`);
+          const badge = document.getElementById(`stepBadge${i}`);
+          if (!card || !badge) continue;
+
+          if (i < stageNum) {
+            card.className = "p-3 rounded-xl bg-[#FFFDF9] border border-emerald-500/40 shadow-xs space-y-1 transition-all";
+            badge.className = "text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded";
+            badge.textContent = "✓ DONE";
+          } else if (i === stageNum) {
+            card.className = "p-3 rounded-xl bg-[#FFFDF9] border-2 border-[#0A0A0A] shadow-md space-y-1 transition-all scale-[1.02]";
+            badge.className = "text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded animate-pulse";
+            badge.textContent = "RUNNING";
+          } else {
+            card.className = "p-3 rounded-xl bg-[#FFFDF9] border border-[#E5DEC9] space-y-1 transition-all opacity-60";
+            badge.className = "text-[9px] font-bold text-[#8C7E6A] bg-[#EFE8DB] px-1.5 py-0.5 rounded";
+            badge.textContent = "PENDING";
+          }
+        }
+      }
+    }
+
+    function resetStepCards() {
+      for (let i = 1; i <= 4; i++) {
+        const card = document.getElementById(`stepCard${i}`);
+        const badge = document.getElementById(`stepBadge${i}`);
+        if (!card || !badge) continue;
+        if (i === 1) {
+          card.className = "p-3 rounded-xl bg-[#FFFDF9] border-2 border-[#0A0A0A] shadow-md space-y-1 transition-all";
+          badge.className = "text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded animate-pulse";
+          badge.textContent = "RUNNING";
+        } else {
+          card.className = "p-3 rounded-xl bg-[#FFFDF9] border border-[#E5DEC9] space-y-1 transition-all opacity-60";
+          badge.className = "text-[9px] font-bold text-[#8C7E6A] bg-[#EFE8DB] px-1.5 py-0.5 rounded";
+          badge.textContent = "PENDING";
+        }
+      }
+    }
+
+    function completePipelineProgressTracker(callback) {
+      if (progressInterval) clearInterval(progressInterval);
+      const fillBar = document.getElementById('progressBarFill');
+      const textPct = document.getElementById('progressPercentageText');
+      const elapsedEl = document.getElementById('progressElapsedTime');
+      const estLeftEl = document.getElementById('progressEstTimeLeft');
+
+      const elapsedMs = Date.now() - progressStartTime;
+      const totalSec = (elapsedMs / 1000).toFixed(1);
+
+      fillBar.style.width = '100%';
+      textPct.textContent = '100%';
+      elapsedEl.textContent = `00:${(elapsedMs / 1000).toFixed(0)}s`;
+      estLeftEl.textContent = '✓ Completed';
+
+      addProgressLog(`✅ Pipeline finished in ${totalSec}s. Rendering Underwriter Review Workspace...`);
+
+      for (let i = 1; i <= 4; i++) {
+        const card = document.getElementById(`stepCard${i}`);
+        const badge = document.getElementById(`stepBadge${i}`);
+        if (card && badge) {
+          card.className = "p-3 rounded-xl bg-[#FFFDF9] border border-emerald-500/50 shadow-xs space-y-1 transition-all";
+          badge.className = "text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded";
+          badge.textContent = "✓ DONE";
+        }
+      }
+
+      setTimeout(() => {
+        const container = document.getElementById('pipelineProgressContainer');
+        if (container) container.classList.add('hidden');
+        if (callback) callback();
+      }, 600);
+    }
+
+    function failPipelineProgressTracker(errorMsg) {
+      if (progressInterval) clearInterval(progressInterval);
+      const fillBar = document.getElementById('progressBarFill');
+      const textPct = document.getElementById('progressPercentageText');
+      const estLeftEl = document.getElementById('progressEstTimeLeft');
+
+      fillBar.style.width = '100%';
+      fillBar.className = "bg-red-600 h-full rounded-md transition-all duration-300 relative shadow-sm";
+      textPct.textContent = 'FAILED';
+      estLeftEl.textContent = '❌ Error';
+
+      addProgressLog(`❌ Pipeline run error: ${errorMsg}`);
+    }
 
     async function handleFileUpload(e) {
       e.preventDefault();
@@ -1270,6 +1559,8 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Processing Pipeline...';
 
+      startPipelineProgressTracker(input.files[0].name);
+
       const formData = new FormData();
       formData.append('file', input.files[0]);
 
@@ -1280,15 +1571,20 @@
         });
         const data = await response.json();
         
-        outputDiv.classList.remove('hidden');
         if (response.ok) {
           latestRunData = data;
-          renderPipelineUI(data);
+          completePipelineProgressTracker(() => {
+            outputDiv.classList.remove('hidden');
+            renderPipelineUI(data);
+          });
         } else {
+          failPipelineProgressTracker(data.detail?.message || 'Upload error');
+          outputDiv.classList.remove('hidden');
           runIdBadge.textContent = 'Error';
           document.getElementById('outputContent').textContent = JSON.stringify(data, null, 2);
         }
       } catch (err) {
+        failPipelineProgressTracker(err.message);
         outputDiv.classList.remove('hidden');
         runIdBadge.textContent = 'Network Error';
         document.getElementById('outputContent').textContent = 'Failed to communicate with ASSAY server: ' + err.message;
@@ -1382,6 +1678,9 @@
         submitBtn.textContent = 'Executing Agent 4 Transformation Engine...';
       }
 
+      startPipelineProgressTracker("Agent 4 Transformation & Export");
+      updateStageUI(4, "Agent 4: Executing Deterministic Transformation", "Applying approved underwriter rules & generating Cleaned_SOV.xlsx...");
+
       const recs = latestRunData.recommendations || [];
       const decisionsList = recs.map((rec, idx) => {
         const recId = rec.id || `R-${idx}`;
@@ -1412,12 +1711,21 @@
         const data = await response.json();
         if (response.ok) {
           latestRunData = data;
-          renderPipelineUI(data);
+          completePipelineProgressTracker(() => {
+            renderPipelineUI(data);
+          });
         } else {
+          failPipelineProgressTracker(data.detail?.message || 'Transformation error');
           alert('Transformation failed: ' + (data.detail?.message || JSON.stringify(data)));
         }
       } catch (err) {
+        failPipelineProgressTracker(err.message);
         alert('Error submitting decisions: ' + err.message);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Approve & Execute Transformation Engine (Agent 4)';
+        }
       }
     }
 
@@ -1531,17 +1839,54 @@
       runIdBadge.textContent = 'Run ID: ' + (data.run_id || 'N/A');
 
       let html = '';
-      const qualityScore = data.quality?.intake_quality_score || 0;
+      const rawQuality = data.quality?.intake_quality_score;
+      let displayQuality = '—';
+      let isHighQuality = false;
+
+      if (rawQuality !== null && rawQuality !== undefined) {
+        const numericVal = Number(rawQuality);
+        if (!isNaN(numericVal)) {
+          const ratioVal = numericVal > 1.0 ? numericVal / 100 : numericVal;
+          displayQuality = ratioVal.toFixed(3);
+          isHighQuality = ratioVal >= 0.80;
+        }
+      }
+
+      const rawMappingAcc = data.mapping?.overall_confidence;
+      let displayMappingAcc = '—';
+      let isHighMappingAcc = false;
+
+      if (rawMappingAcc !== null && rawMappingAcc !== undefined) {
+        const numericAcc = Number(rawMappingAcc);
+        if (!isNaN(numericAcc)) {
+          const ratioAcc = numericAcc > 1.0 ? numericAcc / 100 : numericAcc;
+          displayMappingAcc = (ratioAcc * 100).toFixed(1) + '%';
+          isHighMappingAcc = ratioAcc >= 0.80;
+        }
+      } else if (data.mapping?.mappings && data.mapping.mappings.length > 0) {
+        const mapped = data.mapping.mappings.filter(m => m.target !== null);
+        if (mapped.length > 0) {
+          const sumConf = mapped.reduce((acc, m) => acc + (m.confidence || 0), 0);
+          const ratioAcc = sumConf / mapped.length;
+          displayMappingAcc = (ratioAcc * 100).toFixed(1) + '%';
+          isHighMappingAcc = ratioAcc >= 0.80;
+        }
+      }
+
       const recs = data.recommendations || [];
       const status = data.status || 'completed';
 
       html += `
         <div class="space-y-6 text-left font-sans">
           <!-- Overview Banner -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#FFFDF9] p-4 rounded-xl border border-[#E5DEC9] shadow-sm">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-[#FFFDF9] p-4 rounded-xl border border-[#E5DEC9] shadow-sm">
             <div>
               <span class="text-xs text-[#8C7E6A] font-bold block">INTAKE QUALITY SCORE</span>
-              <span class="text-2xl font-extrabold ${qualityScore >= 80 ? 'text-emerald-700' : 'text-amber-700'}">${qualityScore}%</span>
+              <span class="text-2xl font-extrabold ${isHighQuality ? 'text-emerald-700' : 'text-amber-700'}">${displayQuality}</span>
+            </div>
+            <div>
+              <span class="text-xs text-[#8C7E6A] font-bold block">MAPPING ACCURACY</span>
+              <span class="text-2xl font-extrabold ${isHighMappingAcc ? 'text-emerald-700' : 'text-amber-700'}">${displayMappingAcc}</span>
             </div>
             <div>
               <span class="text-xs text-[#8C7E6A] font-bold block">PRIMARY SHEET</span>
@@ -1554,7 +1899,7 @@
             <div>
               <span class="text-xs text-[#8C7E6A] font-bold block">PIPELINE STATUS</span>
               <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-md ${status === 'awaiting_review' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">
-                ${status === 'awaiting_review' ? '🧑 Human Review Required' : '✅ Completed'}
+                ${status === 'awaiting_review' ? 'Human Review Required' : 'Completed'}
               </span>
             </div>
           </div>
@@ -1562,13 +1907,13 @@
           <!-- Execution Workspace Tab Bar -->
           <div class="flex flex-wrap items-center gap-2 border-b border-[#E5DEC9] pb-3">
             <button onclick="switchExecutionTab('queue')" id="tab-btn-queue" class="px-4 py-2 font-bold text-xs rounded-xl border border-[#0A0A0A] bg-[#0A0A0A] text-[#FAF7F2] shadow-sm flex items-center gap-2">
-              <span>🧑 Review Queue (${recs.length})</span>
+              <span>Review Queue (${recs.length})</span>
             </button>
             <button onclick="switchExecutionTab('data')" id="tab-btn-data" class="px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6] flex items-center gap-2">
-              <span>📊 View Uploaded Source Data</span>
+              <span>View Uploaded Source Data</span>
             </button>
             <button onclick="switchExecutionTab('state')" id="tab-btn-state" class="px-4 py-2 font-bold text-xs rounded-xl border border-transparent transition text-[#57524A] hover:bg-[#F4EFE6] flex items-center gap-2">
-              <span>📋 Audit & State JSON</span>
+              <span>Audit & State JSON</span>
             </button>
           </div>
 
@@ -1630,7 +1975,7 @@
                     Reject
                   </button>
                   <button onclick="setDecision('${recId}', 'edit')" id="btn-edit-${recId}" class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${typeof currentDecisions[recId] === 'object' ? 'bg-amber-600 text-white border-amber-600 font-bold' : 'bg-white text-amber-800 border-amber-300 hover:bg-amber-50'}">
-                    ✏️ Edit
+                    Edit
                   </button>
                 </div>
 
@@ -1685,7 +2030,7 @@
       if (status === 'completed') {
         html += `
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-4">
-            <div class="w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-xl font-bold shadow-md">✓</div>
+            <div class="w-12 h-12 bg-emerald-600 text-white rounded-xl flex items-center justify-center mx-auto text-xl font-bold shadow-md">✓</div>
             <div>
               <h3 class="text-xl font-extrabold text-emerald-950">Transformation Completed Successfully!</h3>
               <p class="text-xs text-emerald-800 mt-1">Every approved operation has been applied deterministically. Audit log generated.</p>
@@ -1693,10 +2038,10 @@
 
             <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
               <a href="/api/runs/${data.run_id}/download/sov" download="Cleaned_SOV.xlsx" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm px-6 py-3 rounded-xl transition shadow-md flex items-center gap-2">
-                <span>📥 Download Cleaned SOV (Cleaned_SOV.xlsx)</span>
+                <span>Download Cleaned SOV (Cleaned_SOV.xlsx)</span>
               </a>
               <a href="/api/runs/${data.run_id}/download/audit" download="Audit_Log.xlsx" class="bg-[#0A0A0A] hover:bg-[#262626] text-[#FAF7F2] font-bold text-sm px-6 py-3 rounded-xl transition shadow-md flex items-center gap-2">
-                <span>📋 Download Audit Log (Audit_Log.xlsx)</span>
+                <span>Download Audit Log (Audit_Log.xlsx)</span>
               </a>
             </div>
           </div>

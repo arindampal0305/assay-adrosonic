@@ -52,19 +52,21 @@ def human_review(state: SOVState) -> dict[str, Any]:
 
             if rec_id in rec_map:
                 target_rec = rec_map[rec_id]
+                src_col = target_rec.get("source_column") or ""
+                tgt_fld = target_rec.get("field") or ""
                 if action == "accept":
                     target_rec["status"] = "approved"
                     store.record_decision(
-                        source_column=target_rec.get("source_column", ""),
-                        target_field=target_rec.get("field", ""),
+                        source_column=src_col,
+                        target_field=tgt_fld,
                         approved=True,
                         notes=note,
                     )
                 elif action == "reject":
                     target_rec["status"] = "rejected"
                     store.record_decision(
-                        source_column=target_rec.get("source_column", ""),
-                        target_field=target_rec.get("field", ""),
+                        source_column=src_col,
+                        target_field=tgt_fld,
                         approved=False,
                         notes=note,
                     )
@@ -73,8 +75,8 @@ def human_review(state: SOVState) -> dict[str, Any]:
                     if d.get("edited_op"):
                         target_rec["op"] = d["edited_op"]
                     store.record_decision(
-                        source_column=target_rec.get("source_column", ""),
-                        target_field=target_rec.get("field", ""),
+                        source_column=src_col,
+                        target_field=tgt_fld,
                         approved=True,
                         notes=note,
                     )
@@ -142,11 +144,14 @@ def run_pipeline(path: Path | str, file_name: Optional[str] = None) -> SOVState:
 
     # Auto-approve all recommendations if CLI run
     state_obj = SOVState.model_validate(result) if isinstance(result, dict) else result
-    if state_obj.recommendations and any(r.get("status") == "pending" for r in state_obj.recommendations):
+    recs = state_obj.recommendations or []
+    get_stat = lambda r: r.get("status") if isinstance(r, dict) else getattr(r, "status", None)
+    get_id = lambda r: r.get("id") if isinstance(r, dict) else getattr(r, "id", None)
+    if recs and any(get_stat(r) == "pending" for r in recs):
         decisions = [
-            {"rec_id": r["id"], "action": "accept", "note": "CLI auto-approve", "by": "cli_user"}
-            for r in state_obj.recommendations
-            if r.get("status") == "pending"
+            {"rec_id": get_id(r), "action": "accept", "note": "CLI auto-approve", "by": "cli_user"}
+            for r in recs
+            if get_stat(r) == "pending"
         ]
         result = COMPILED_GRAPH.invoke(Command(resume=decisions), config=config)
 

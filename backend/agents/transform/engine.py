@@ -133,6 +133,7 @@ def run_transformation_pipeline(
     body = sheet.grid[start_row:]
     n_rows = len(body)
     sheet_rows = [start_row + i + 1 for i in range(n_rows)]
+    sheet_row_to_idx = {s_row: i for i, s_row in enumerate(sheet_rows)}
 
     # Collect source column mappings
     mappings = state.mapping.get("mappings") or []
@@ -211,9 +212,9 @@ def run_transformation_pipeline(
         for s_row in affected_rows:
             if s_row in excluded_row_numbers:
                 continue
-            if s_row not in sheet_rows:
+            idx = sheet_row_to_idx.get(s_row)
+            if idx is None:
                 continue
-            idx = sheet_rows.index(s_row)
             old_val = target_grid[tf][idx]
             new_val, rendered_after = apply_op_to_cell(op, old_val, before_after_list, s_row)
 
@@ -333,9 +334,11 @@ def _write_audit_log(filepath: Path, entries: list[AuditEntry]) -> None:
 
 def _verify_output_excel(filepath: Path) -> dict[str, Any]:
     """Self-check output Excel file against SRS 5.1 target schema and Pandera."""
-    wb = openpyxl.load_workbook(filepath, data_only=True)
+    wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
     ws = wb.active
-    headers = [cell.value for cell in ws[1]]
+    first_row = next(ws.iter_rows(values_only=True))
+    headers = list(first_row)
+    wb.close()
 
     assert len(headers) == 17, f"Output headers count {len(headers)} != 17"
     assert tuple(headers) == TARGET_FIELD_NAMES, f"Output headers disagree with TARGET_FIELD_NAMES: {headers}"

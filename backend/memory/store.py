@@ -51,11 +51,13 @@ class MemoryStore:
         notes: Optional[str] = None,
     ) -> str:
         """Store a human decision into vector memory."""
-        doc_id = f"{'pos' if approved else 'neg'}_{source_column.lower()}_{target_field}_{hash(source_column + target_field)}"
+        src = (source_column or "").strip()
+        tgt = (target_field or "").strip()
+        doc_id = f"{'pos' if approved else 'neg'}_{src.lower()}_{tgt}_{hash(src + tgt)}"
         if not HAS_CHROMADB or self.collection is None:
             return doc_id
 
-        doc_text = f"Source Header: '{source_column}' -> Target Field: '{target_field}' ({'Approved' if approved else 'Rejected'})"
+        doc_text = f"Source Header: '{src}' -> Target Field: '{tgt}' ({'Approved' if approved else 'Rejected'})"
 
         metadata = {
             "source_column": source_column,

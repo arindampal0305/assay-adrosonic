@@ -49,6 +49,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -528,21 +529,31 @@ def reason_over(
     eligible = [
         r for r in recommendations if r.confidence < REASON_BELOW_CONFIDENCE
     ][:limit]
-    chosen = {r.id for r in eligible}
+    chosen_recs: list[tuple[Recommendation, list[Finding]]] = []
+    for rec in eligible:
+        group = _group_for(rec, findings)
+        if group:
+            chosen_recs.append((rec, group))
+
+    reasoned_map: dict[str, tuple[Recommendation, ReasoningOutcome]] = {}
+    if chosen_recs:
+        with ThreadPoolExecutor(max_workers=min(len(chosen_recs), 8)) as executor:
+            future_to_rec = {
+                executor.submit(reason_once, client, rec, grp): rec.id
+                for rec, grp in chosen_recs
+            }
+            for future, rec_id in future_to_rec.items():
+                reasoned_map[rec_id] = future.result()
 
     outcomes: list[ReasoningOutcome] = []
     out: list[Recommendation] = []
     for rec in recommendations:
-        if rec.id not in chosen:
+        if rec.id in reasoned_map:
+            updated, outcome = reasoned_map[rec.id]
+            out.append(updated)
+            outcomes.append(outcome)
+        else:
             out.append(rec)
-            continue
-        group = _group_for(rec, findings)
-        if not group:  # pragma: no cover - the grouping key is the one that built it
-            out.append(rec)
-            continue
-        updated, outcome = reason_once(client, rec, group)
-        out.append(updated)
-        outcomes.append(outcome)
     return out, outcomes
 
 
