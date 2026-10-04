@@ -202,7 +202,7 @@ async def get_run_data_preview(run_id: str):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to parse preview data: {exc}")
 
-    mappings_list = state.mapping.get("mapping", {}).get("mappings", [])
+    mappings_list = state.mapping.get("mappings", []) or state.mapping.get("mapping", {}).get("mappings", [])
 
     return {
         "run_id": run_id,
